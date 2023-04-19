@@ -1,6 +1,19 @@
 pyfem package
 =============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   pyfem.assembly
+   pyfem.elements
+   pyfem.materials
+   pyfem.mesh
+   pyfem.solvers
+   pyfem.utils
+
 Submodules
 ----------
 
