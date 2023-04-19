@@ -25,7 +25,7 @@ class MeshWriter(BaseModule):
 
     def run(self, props, globdat):
 
-        if not globdat.solverStatus.cycle % self.interval == 0:
+        if not globdat.SolverStatus.cycle % self.interval == 0:
             return
 
         logger.info("Writing mesh .................")
@@ -59,10 +59,10 @@ class MeshWriter(BaseModule):
 
         dispDofs = ["u", "v", "w"]
 
-        for nodeID in list(globdat.nodes.keys()):
+        for node_id in list(globdat.nodes.keys()):
             for dispDof in dispDofs:
                 if dispDof in globdat.dofs.dofTypes:
-                    vtkfile.write(str(state[globdat.dofs.getForType(nodeID, dispDof)]) + ' ')
+                    vtkfile.write(str(state[globdat.dofs.getForType(node_id, dispDof)]) + ' ')
                 else:
                     vtkfile.write(' 0.\n')
 
@@ -71,8 +71,8 @@ class MeshWriter(BaseModule):
         for field in self.extraFields:
             vtkfile.write('<DataArray type="Float64" Name="' + field + '" NumberOfComponents="1" format="ascii" >\n')
 
-            for nodeID in list(globdat.nodes.keys()):
-                vtkfile.write(str(state[globdat.dofs.getForType(nodeID, field)]) + ' ')
+            for node_id in list(globdat.nodes.keys()):
+                vtkfile.write(str(state[globdat.dofs.getForType(node_id, field)]) + ' ')
 
             vtkfile.write('</DataArray>\n')
 
@@ -91,8 +91,8 @@ class MeshWriter(BaseModule):
         vtkfile.write('<Points>\n')
         vtkfile.write('<DataArray type="Float64" Name="Points" NumberOfComponents="3" format="ascii">\n')
 
-        for nodeID in list(globdat.nodes.keys()):
-            crd = globdat.nodes.getNodeCoords(nodeID)
+        for node_id in list(globdat.nodes.keys()):
+            crd = globdat.nodes.getNodeCoords(node_id)
             if len(crd) == 2:
                 vtkfile.write(str(crd[0]) + ' ' + str(crd[1]) + " 0.0\n")
             else:

@@ -27,13 +27,11 @@ class HDF5Writer(BaseModule):
             f = h5py.File(self.prefix + self.extension, "w")
             f.attrs["cycleCount"] = 0
 
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
 
-        cycle = globdat.solverStatus.cycle
+        cycle = globdat.SolverStatus.cycle
 
         if cycle % self.interval == 0:
 
@@ -102,32 +100,32 @@ class HDF5Writer(BaseModule):
 
         coordinates = []
 
-        for nodeID in list(globdat.nodes.keys()):
-            coordinates.append(globdat.nodes.getNodeCoords(nodeID))
+        for node_id in list(globdat.nodes.keys()):
+            coordinates.append(globdat.nodes.getNodeCoords(node_id))
 
         coordinates = np.array(coordinates, dtype=float)
-        nodeIDs = np.array(globdat.nodes.getIndices(), dtype=int)
+        node_ids = np.array(globdat.nodes.getIndices(), dtype=int)
 
         cdat["nodes"].create_dataset("coordinates", coordinates.shape, dtype='f', data=coordinates)
-        cdat["nodes"].create_dataset("nodeIDs", nodeIDs.shape, dtype='i', data=nodeIDs)
+        cdat["nodes"].create_dataset("node_ids", node_ids.shape, dtype='i', data=node_ids)
 
         dofs = self.dispDofs[:coordinates.shape[1]]
 
         cdat.create_group("nodeGroups")
 
         for key in globdat.nodes.groups:
-            nodeIDs = np.array(globdat.nodes.getIndices(globdat.nodes.groups[key]), dtype=int)
-            cdat["nodeGroups"].create_dataset(key, nodeIDs.shape, dtype='i', data=nodeIDs)
+            node_ids = np.array(globdat.nodes.getIndices(globdat.nodes.groups[key]), dtype=int)
+            cdat["nodeGroups"].create_dataset(key, node_ids.shape, dtype='i', data=node_ids)
 
         cdat.create_group("nodeData")
 
         displacements = []
 
-        for nodeID in list(globdat.nodes.keys()):
+        for node_id in list(globdat.nodes.keys()):
             d = []
             for dispDof in dofs:
                 if dispDof in globdat.dofs.dofTypes:
-                    d.append(globdat.state[globdat.dofs.getForType(nodeID, dispDof)])
+                    d.append(globdat.state[globdat.dofs.getForType(node_id, dispDof)])
                 else:
                     d.append(0.)
             displacements.append(d)
@@ -140,8 +138,8 @@ class HDF5Writer(BaseModule):
             if field in globdat.dofs.dofTypes:
                 output = []
 
-                for nodeID in list(globdat.nodes.keys()):
-                    output.append(globdat.state[globdat.dofs.getForType(nodeID, field)])
+                for node_id in list(globdat.nodes.keys()):
+                    output.append(globdat.state[globdat.dofs.getForType(node_id, field)])
 
                 output = np.array(output, dtype=float)
 

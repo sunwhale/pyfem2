@@ -1,6 +1,6 @@
 import re
 
-from pyfem.utils.dataStructures import solverStatus
+from pyfem.utils.data_structures import SolverStatus
 from pyfem.utils.itemList import itemList
 from pyfem.utils.logger import getLogger
 
@@ -15,12 +15,10 @@ class ElementSet(itemList):
 
         self.nodes = nodes
         self.props = props
-        self.solverStat = solverStatus()
+        self.solverStat = SolverStatus()
         self.groups = {}
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def __iter__(self):
 
@@ -32,9 +30,7 @@ class ElementSet(itemList):
 
         return iter(elements)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def __repr__(self):
         msg = "Number of elements ......... %6d\n" % len(self)
@@ -49,24 +45,20 @@ class ElementSet(itemList):
 
         return msg
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def getDofTypes(self):
 
         dofTypes = []
 
         for element in self:
-            for dofType in element.dofTypes:
-                if dofType not in dofTypes:
-                    dofTypes.append(dofType)
+            for dof_type in element.dofTypes:
+                if dof_type not in dofTypes:
+                    dofTypes.append(dof_type)
 
         return dofTypes
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def readFromFile(self, fname):
 
@@ -93,7 +85,7 @@ class ElementSet(itemList):
                         if b[0].startswith("//") or b[0].startswith("#"):
                             break
                         if len(b) > 1 and type(eval(b[0])) == int:
-                            self.add(eval(b[0]), eval(b[1]), [eval(nodeID) for nodeID in b[2:]])
+                            self.add(eval(b[0]), eval(b[1]), [eval(node_id) for node_id in b[2:]])
 
             elif line.startswith('gmsh') == True:
                 ln = line.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '').replace(';', '')
@@ -101,9 +93,7 @@ class ElementSet(itemList):
                 self.readGmshFile(ln[1][1:-1])
                 return
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def readGmshFile(self, fname):
 
@@ -149,9 +139,9 @@ class ElementSet(itemList):
 
             #  Check if the node IDs are valid:
 
-            for nodeID in elem.getNodes():
-                if not nodeID in self.nodes:
-                    raise RuntimeError('Node ID ' + str(nodeID) + ' does not exist')
+            for node_id in elem.getNodes():
+                if not node_id in self.nodes:
+                    raise RuntimeError('Node ID ' + str(node_id) + ' does not exist')
 
             #  Add the element to the element set:
 
@@ -161,9 +151,7 @@ class ElementSet(itemList):
 
             self.addToGroup(modelName, ID)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def addToGroup(self, modelType, ID):
 
@@ -172,23 +160,17 @@ class ElementSet(itemList):
         else:
             self.groups[modelType].append(ID)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def addGroup(self, groupName, groupIDs):
         self.groups[groupName] = groupIDs
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def iterGroupNames(self):
         return self.groups
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def iterElementGroup(self, groupName):
         if groupName == "All":
@@ -201,9 +183,7 @@ class ElementSet(itemList):
         else:
             return iter(self.get(self.groups[groupName]))
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def elementGroupCount(self, groupName):
         if groupName == "All":
@@ -230,9 +210,7 @@ class ElementSet(itemList):
 
         return familyIDs
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def commitHistory(self):
 

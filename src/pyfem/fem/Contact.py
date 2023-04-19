@@ -68,10 +68,10 @@ class Contact:
 
         centre = self.centre + globdat.lam * self.direction
 
-        for nodeID in list(globdat.nodes.keys()):
-            crd = globdat.nodes.getNodeCoords(nodeID)
+        for node_id in list(globdat.nodes.keys()):
+            crd = globdat.nodes.getNodeCoords(node_id)
 
-            idofs = globdat.dofs.getForTypes([nodeID], self.dispDofs)
+            idofs = globdat.dofs.getForTypes([node_id], self.dispDofs)
 
             crd += globdat.state[idofs]
 

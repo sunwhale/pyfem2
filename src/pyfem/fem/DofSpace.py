@@ -6,7 +6,7 @@ from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg import spsolve
 
 from pyfem.fem.Constrainer import Constrainer
-from pyfem.utils.parser import readNodeTable
+from pyfem.utils.parser import read_node_table
 from pyfem.utils.itemList import itemList
 from pyfem.utils.logger import getLogger
 
@@ -36,9 +36,7 @@ class DofSpace:
 
         self.allConstrainedDofs = []
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def __str__(self):
 
@@ -48,9 +46,7 @@ class DofSpace:
 
         return str(self.dofs)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def __len__(self):
 
@@ -61,9 +57,7 @@ class DofSpace:
 
         return len(self.dofs.flatten())
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def setConstrainFactor(self, fac, loadCase="All_"):
 
@@ -73,21 +67,17 @@ class DofSpace:
         else:
             self.cons.constrainedFac[loadCase] = fac
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def readFromFile(self, fname):
 
         logger.info("Reading constraints ..........")
 
-        nodeTable = readNodeTable(fname, "NodeConstraints", self.nodes)
+        NodeTable = read_node_table(fname, "NodeConstraints", self.nodes)
 
-        self.cons = self.createConstrainer(nodeTable)
+        self.cons = self.createConstrainer(NodeTable)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def createConstrainer(self, nodeTables=None):
 
@@ -102,30 +92,30 @@ class DofSpace:
             self.cons = cons
             return cons
 
-        for nodeTable in nodeTables:
+        for NodeTable in nodeTables:
 
-            label = nodeTable.subLabel
+            label = NodeTable.sub_label
 
             cons.constrainedDofs[label] = []
             cons.constrainedVals[label] = []
             cons.constrainedFac[label] = 1.0
 
-            for item in nodeTable.data:
+            for item in NodeTable.data:
 
-                nodeID = item[1]
-                dofType = item[0]
+                node_id = item[1]
+                dof_type = item[0]
                 val = item[2]
 
-                if not nodeID in self.nodes:
-                    raise RuntimeError('Node ID ' + str(nodeID) + ' does not exist')
+                if not node_id in self.nodes:
+                    raise RuntimeError('Node ID ' + str(node_id) + ' does not exist')
 
-                ind = self.IDmap.get(nodeID)
+                ind = self.IDmap.get(node_id)
 
-                if dofType not in self.dofTypes:
-                    raise RuntimeError('DOF type "' + dofType + '" does not exist')
+                if dof_type not in self.dofTypes:
+                    raise RuntimeError('DOF type "' + dof_type + '" does not exist')
 
                 if len(item) == 3:
-                    dofID = self.dofs[ind, self.dofTypes.index(dofType)]
+                    dofID = self.dofs[ind, self.dofTypes.index(dof_type)]
 
                     cons.addConstraint(dofID, val, label)
                 else:
@@ -143,7 +133,7 @@ class DofSpace:
 
                     slaveDof = self.dofs[slaveInd, self.dofTypes.index(slaveDofType)]
 
-                    dofID = self.dofs[ind, self.dofTypes.index(dofType)]
+                    dofID = self.dofs[ind, self.dofTypes.index(dof_type)]
 
                     cons.addConstraint(dofID, [val, slaveDof, factor], label)
 
@@ -154,39 +144,33 @@ class DofSpace:
 
         return cons
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
-    def getForType(self, nodeIDs, dofType):
+
+    def getForType(self, node_ids, dof_type):
 
         '''
-        Returns all dofIDs for given dofType for a list of nodes
+        Returns all dofIDs for given dof_type for a list of nodes
         '''
 
-        return self.dofs[self.IDmap.get(nodeIDs), self.dofTypes.index(dofType)]
+        return self.dofs[self.IDmap.get(node_ids), self.dofTypes.index(dof_type)]
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
-    def getForTypes(self, nodeIDs, dofTypes):
+
+    def getForTypes(self, node_ids, dofTypes):
 
         '''
-        Returns all dofIDs for given list of dofType for a list of nodes
+        Returns all dofIDs for given list of dof_type for a list of nodes
         '''
 
         dofs = []
 
-        for node in nodeIDs:
-            for dofType in dofTypes:
-                dofs.append(self.dofs[self.IDmap.get(node), self.dofTypes.index(dofType)])
+        for node in node_ids:
+            for dof_type in dofTypes:
+                dofs.append(self.dofs[self.IDmap.get(node), self.dofTypes.index(dof_type)])
 
         return dofs
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def getDofName(self, dofID):
 
@@ -196,9 +180,7 @@ class DofSpace:
 
         return self.getTypeName(dofID) + '[' + str(self.getNodeID(dofID)) + ']'
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def getNodeID(self, dofID):
 
@@ -208,11 +190,9 @@ class DofSpace:
 
         return self.nodes.findID(int(where(self.dofs == dofID)[0]))
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
-    def getType(self, dofID):
+
+    def get_type(self, dofID):
 
         '''
         Returns the type of dofID
@@ -220,31 +200,25 @@ class DofSpace:
 
         return int(where(self.dofs == dofID)[1])
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def getTypeName(self, dofID):
 
         '''
-        Returns the name of the dofType
+        Returns the name of the dof_type
         '''
 
-        return self.dofTypes[self.getType(dofID)]
+        return self.dofTypes[self.get_type(dofID)]
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
-    def get(self, nodeIDs):
+
+    def get(self, node_ids):
 
         '''Returns all dofIDs for a list of nodes'''
 
-        return self.dofs[self.IDmap.get(nodeIDs)].flatten()
+        return self.dofs[self.IDmap.get(node_ids)].flatten()
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def copyConstrainer(self, dofTypes: list = None):
 
@@ -257,8 +231,8 @@ class DofSpace:
         if type(dofTypes) is str:
             dofTypes = [dofTypes]
 
-        for dofType in dofTypes:
-            for iDof in self.dofs[:, self.dofTypes.index(dofType)]:
+        for dof_type in dofTypes:
+            for iDof in self.dofs[:, self.dofTypes.index(dof_type)]:
                 for label in newCons.constrainedFac.keys():
                     newCons.addConstraint(iDof, 0.0, label)
 
@@ -301,9 +275,7 @@ class DofSpace:
 
         return x
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def eigensolve(self, A, B, count=5):
 
@@ -322,9 +294,7 @@ class DofSpace:
 
         return eigvals, x
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def norm(self, r, constrainer=None):
 
@@ -337,9 +307,7 @@ class DofSpace:
 
         return scipy.linalg.norm(constrainer.C.transpose() * r)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def maskPrescribed(self, a, val=0.0, constrainer=None):
 

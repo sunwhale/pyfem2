@@ -16,13 +16,11 @@ class ContourWriter(BaseModule):
 
         self.columndata = []
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
 
-        if not globdat.solverStatus.cycle % self.interval == 0:
+        if not globdat.SolverStatus.cycle % self.interval == 0:
             return
 
         logger.info("Writing contour file ......\n")
@@ -35,8 +33,8 @@ class ContourWriter(BaseModule):
         if len(crd) == 3:
             outfile.write('%-10s ' % 'z-coor')
 
-        for dofType in globdat.dofs.dofTypes:
-            outfile.write('%-10s ' % dofType)
+        for dof_type in globdat.dofs.dofTypes:
+            outfile.write('%-10s ' % dof_type)
 
         for name in globdat.outputNames:
             outfile.write('%-10s ' % name)
@@ -50,8 +48,8 @@ class ContourWriter(BaseModule):
             if len(crd) == 3:
                 outfile.write(' %10.3e' % crd[2])
 
-            for dofType in globdat.dofs.dofTypes:
-                outfile.write(' %10.3e' % (globdat.state[globdat.dofs.getForType(iNod, dofType)]))
+            for dof_type in globdat.dofs.dofTypes:
+                outfile.write(' %10.3e' % (globdat.state[globdat.dofs.getForType(iNod, dof_type)]))
 
             for name in globdat.outputNames:
                 stress = globdat.getData(name, list(range(len(globdat.nodes))))

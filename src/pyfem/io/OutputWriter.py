@@ -17,9 +17,7 @@ class OutputWriter(BaseModule):
         if not hasattr(self, "filename"):
             self.filename = self.prefix + self.extension
 
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
 

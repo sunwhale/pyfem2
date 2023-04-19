@@ -2,9 +2,6 @@ import os
 import sys
 
 sys.path.insert(0, os.getcwd())
-# sys.path.insert(0, os.path.join(os.getcwd(), ''))
-
-print(os.path.join(os.getcwd()))
 
 import time
 
@@ -15,6 +12,9 @@ from pyfem.solvers.Solver import Solver
 t1 = time.time()
 
 props, globdat = input_reader(sys.argv)
+
+print(type(props))
+print(type(globdat))
 
 solver = Solver(props, globdat)
 output = OutputManager(props, globdat)

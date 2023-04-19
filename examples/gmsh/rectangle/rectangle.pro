@@ -1,5 +1,3 @@
-
-
 input = "rectangle.dat";
 
 rectangle =
@@ -19,7 +17,7 @@ solver =
   type     = "LinearSolver";
 };
 
-outputModules = ["vtk","graph"];
+outputModules = ["vtk", "graph"];
 
 vtk =
 {
@@ -31,7 +29,7 @@ graph =
   type = "GraphWriter";
   onScreen = true;
 
-  columns = [ "disp" , "load" ];
+  columns = ["disp", "load"];
 
   disp =
   {

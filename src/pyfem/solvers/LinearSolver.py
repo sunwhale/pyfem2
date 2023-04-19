@@ -18,12 +18,10 @@ class LinearSolver(BaseModule):
 
         logger.info("Starting linear solver .......")
 
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
-        globdat.solverStatus.increaseStep()
+        globdat.SolverStatus.increaseStep()
 
         K, fint = assembleTangentStiffness(props, globdat)
         fext = assembleExternalForce(props, globdat)

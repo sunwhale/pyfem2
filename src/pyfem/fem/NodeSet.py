@@ -2,16 +2,14 @@ import re
 
 from numpy import array
 
-from pyfem.utils.parser import getType
+from pyfem.utils.parser import get_type
 from pyfem.utils.itemList import itemList
 from pyfem.utils.logger import getLogger
 
 logger = getLogger()
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+
 
 class NodeSet(itemList):
 
@@ -19,16 +17,12 @@ class NodeSet(itemList):
         self.rank = -1
         self.groups = {}
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
-    def getNodeCoords(self, nodeIDs):
-        return array(self.get(nodeIDs))
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+    def getNodeCoords(self, node_ids):
+        return array(self.get(node_ids))
+
+
 
     def readFromFile(self, fname):
 
@@ -67,9 +61,7 @@ class NodeSet(itemList):
         for key in self.groups:
             self.groups[key] = list(set(self.groups[key]))
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def readGmshFile(self, fname):
 
@@ -86,8 +78,8 @@ class NodeSet(itemList):
                 if (typ[:4] in obj3d):
                     self.rank = 3
 
-        for nodeID, p in enumerate(mesh.points):
-            self.add(nodeID, p[:self.rank])
+        for node_id, p in enumerate(mesh.points):
+            self.add(node_id, p[:self.rank])
 
         for key in mesh.cell_sets_dict:
             if key == "gmsh:bounding_entities":
@@ -96,12 +88,10 @@ class NodeSet(itemList):
                 for typ in mesh.cell_sets_dict[key]:
                     for idx in mesh.cell_sets_dict[key][typ]:
                         iNodes = mesh.cells_dict[typ][idx]
-                        for nodeID in iNodes:
-                            self.addToGroup(key, nodeID)
+                        for node_id in iNodes:
+                            self.addToGroup(key, node_id)
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def addToGroup(self, modelType, ID):
 
@@ -110,9 +100,7 @@ class NodeSet(itemList):
         else:
             self.groups[modelType].append(int(ID))
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def __repr__(self):
         msg = "Number of nodes ............ %6d\n" % len(self)
@@ -128,9 +116,7 @@ class NodeSet(itemList):
 
         return msg
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def readNodalCoords(self, fin):
 
@@ -170,5 +156,5 @@ class NodeSet(itemList):
             a = line.split()
 
             for b in a:
-                if getType(b) == int:
+                if get_type(b) == int:
                     self.addToGroup(key, b)

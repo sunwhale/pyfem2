@@ -5,11 +5,7 @@ from pyfem.utils.logger import getLogger
 logger = getLogger()
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def cleanVariable(a):
+def clean_variable(a):
     if a == 'true':
         return True
     elif a == 'false':
@@ -21,11 +17,7 @@ def cleanVariable(a):
             return a
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-class solverStatus:
+class SolverStatus:
 
     def __init__(self):
         self.cycle = 0
@@ -41,55 +33,41 @@ class solverStatus:
         self.iiter = 0
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
 class Properties:
 
-    def __init__(self, dictionary={}):
+    def __init__(self, dictionary=None):
 
+        if dictionary is None:
+            dictionary = {}
         for key in dictionary.keys():
             setattr(self, key, dictionary[key])
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
-
     def __str__(self):
 
-        myStr = ''
+        msg = ''
         for att in dir(self):
 
             # Ignore private members and standard routines
             if att.startswith('__'):
                 continue
 
-            myStr += 'Attribute: ' + att + '\n'
-            myStr += str(getattr(self, att)) + '\n'
+            msg += 'Attribute: ' + att + '\n'
+            msg += str(getattr(self, att)) + '\n'
 
-        return myStr
-
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+        return msg
 
     def __iter__(self):
 
-        propsList = []
+        props_list = []
         for att in dir(self):
 
             # Ignore private members and standard routines
             if att.startswith('__'):
                 continue
 
-            propsList.append((att, getattr(self, att)))
+            props_list.append((att, getattr(self, att)))
 
-        return iter(propsList)
-
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+        return iter(props_list)
 
     def store(self, key, val):
 
@@ -102,12 +80,8 @@ class Properties:
             for y in kets[:-1]:
                 props = getattr(props, y)
 
-            setattr(props, kets[-1], cleanVariable(val))
+            setattr(props, kets[-1], clean_variable(val))
 
-
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
 
 class GlobalData(Properties):
 
@@ -123,13 +97,9 @@ class GlobalData(Properties):
         self.velo = zeros(len(self.dofs))
         self.acce = zeros(len(self.dofs))
 
-        self.solverStatus = elements.solverStat
+        self.SolverStatus = elements.solverStat
 
         self.outputNames = []
-
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
 
     def readFromFile(self, fname):
 
@@ -155,33 +125,29 @@ class GlobalData(Properties):
                         if len(b) == 2:
                             c = b[0].split('[')
 
-                            dofType = c[0]
-                            nodeID = eval(c[1].split(']')[0])
+                            dof_type = c[0]
+                            node_id = eval(c[1].split(']')[0])
 
-                            self.fhat[self.dofs.getForType(nodeID, dofType)] = eval(b[1])
+                            self.fhat[self.dofs.getForType(node_id, dof_type)] = eval(b[1])
 
-    # ---------------------------------------------------------------------------------
-    #
-    # ---------------------------------------------------------------------------------
+    def printNodes(self, file_name=None, inodes=None):
 
-    def printNodes(self, fileName=None, inodes=None):
-
-        if fileName is None:
+        if file_name is None:
             f = None
         else:
-            f = open(fileName, "w")
+            f = open(file_name, "w")
 
         if inodes is None:
             inodes = list(self.nodes.keys())
 
         print('   Node | ', file=f, end=' ')
 
-        for dofType in self.dofs.dofTypes:
-            print("  %-10s" % dofType, file=f, end=' ')
+        for dof_type in self.dofs.dofTypes:
+            print("  %-10s" % dof_type, file=f, end=' ')
 
         if hasattr(self, 'fint'):
-            for dofType in self.dofs.dofTypes:
-                print(" fint-%-6s" % dofType, file=f, end=' ')
+            for dof_type in self.dofs.dofTypes:
+                print(" fint-%-6s" % dof_type, file=f, end=' ')
 
         for name in self.outputNames:
             print(" %-11s" % name, file=f, end=' ')
@@ -189,25 +155,21 @@ class GlobalData(Properties):
         print(" ", file=f)
         print(('-' * 100), file=f)
 
-        for nodeID in inodes:
-            print('  %4i  | ' % nodeID, file=f, end=' ')
-            for dofType in self.dofs.dofTypes:
-                print(' %10.3e ' % self.state[self.dofs.getForType(nodeID, dofType)], file=f, end=' ')
-            for dofType in self.dofs.dofTypes:
-                print(' %10.3e ' % self.fint[self.dofs.getForType(nodeID, dofType)], file=f, end=' ')
+        for node_id in inodes:
+            print('  %4i  | ' % node_id, file=f, end=' ')
+            for dof_type in self.dofs.dofTypes:
+                print(' %10.3e ' % self.state[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
+            for dof_type in self.dofs.dofTypes:
+                print(' %10.3e ' % self.fint[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
 
             for name in self.outputNames:
-                print(' %10.3e ' % self.getData(name, nodeID), file=f, end=' ')
+                print(' %10.3e ' % self.getData(name, node_id), file=f, end=' ')
 
             print(" ", file=f)
         print(" ", file=f)
 
-        if fileName is not None:
+        if file_name is not None:
             f.close()
-
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
 
     def getData(self, outputName, inodes):
 
@@ -228,10 +190,6 @@ class GlobalData(Properties):
 
             return outdata
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
-
     def resetNodalOutput(self):
 
         for outputName in self.outputNames:
@@ -240,10 +198,6 @@ class GlobalData(Properties):
 
         self.outputNames = []
 
-
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
 
 class elementData():
 

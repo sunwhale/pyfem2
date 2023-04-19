@@ -1,7 +1,7 @@
 from numpy import zeros, ones, append, repeat, array
 from scipy.sparse import coo_matrix
 
-from pyfem.utils.dataStructures import elementData
+from pyfem.utils.data_structures import elementData
 
 
 #######################################
@@ -124,7 +124,7 @@ def assembleInternalForce(props, globdat):
 def assembleExternalForce(props, globdat):
     fext = assembleArray(props, globdat, rank=1, action='getExternalForce')
 
-    return fext[0] + globdat.fhat * globdat.solverStatus.lam
+    return fext[0] + globdat.fhat * globdat.SolverStatus.lam
 
 
 def assembleDissipation(props, globdat):

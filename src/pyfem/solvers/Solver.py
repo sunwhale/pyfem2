@@ -11,9 +11,7 @@ class Solver:
 
         self.solver = eval(solverType + "( props , globdat )")
 
-    # -------------------------------------------------------------------------------
-    #
-    # -------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
         self.solver.run(props, globdat)

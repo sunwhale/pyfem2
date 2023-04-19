@@ -1,24 +1,24 @@
-from pyfem.utils.dataStructures import Properties
+from pyfem.utils.data_structures import Properties
 
 
-def containsValue(db, val):
-    '''
+def has_value(db, val):
+    """
     Addition of two numbers
-  
+
     :param db: a
     :type db:  integer
     :param val: btted
     :type val:  integer
     :returns: new value
     :rtype:   integer
-    '''
+    """
 
     keys = list(db.keys())
 
     for key in keys:
 
         if type(db[key]) == dict:
-            if containsValue(db[key], val):
+            if has_value(db[key], val):
                 return True
         else:
             if db[key] == val:
@@ -26,11 +26,20 @@ def containsValue(db, val):
     return False
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+def clean_variable(a):
+    """
+    这个函数用于 "清理" 变量，它有一个输入参数 a，代表变量名或字符串值。
 
-def cleanVariable(a):
+    函数的逻辑如下：
+
+    如果 a 是字符串 "true"，则返回 True。
+    如果 a 是字符串 "false"，则返回 False。
+    否则，尝试将字符串转换为变量或表达式的值，如果转换成功，则返回这个值。
+    如果转换失败或者 a 不是字符串，则返回 a 的原始值。
+    
+    :param a:
+    :return:
+    """
     if a == 'true':
         return True
     elif a == 'false':
@@ -42,56 +51,36 @@ def cleanVariable(a):
             return a
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def isNodeDof(nodeDof):
-    return type(nodeDof) == str and '[' in nodeDof
+def is_node_dof(node_dof):
+    return type(node_dof) == str and '[' in node_dof
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+def decode_node_dof(node_dof, nodes):
+    a = node_dof.split('[')
+    dof_type = a[0]
+    node_id = clean_variable(a[1].split(']')[0])
 
-def decodeNodeDof(nodeDof, nodes):
-    a = nodeDof.split('[')
-    dofType = a[0]
-    nodeID = cleanVariable(a[1].split(']')[0])
-
-    if type(nodeID) == str:
-        return dofType, nodes.groups[nodeID]
+    if type(node_id) == str:
+        return dof_type, nodes.groups[node_id]
     else:
-        return dofType, [nodeID]
+        return dof_type, [node_id]
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def getType(a):
-    return type(cleanVariable(a))
+def get_type(a):
+    return type(clean_variable(a))
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def storeValue(db, key, a):
+def store_value(db, key, a):
     if type(a) == list:
         tmp = []
         for v in a:
-            tmp.append(cleanVariable(v))
+            tmp.append(clean_variable(v))
         db.store(key, tmp)
     else:
-        db.store(key, cleanVariable(a))
+        db.store(key, clean_variable(a))
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def readItem(l1, db):
+def read_item(l1, db):
     if '.' in l1[0]:
         l2 = l1[0].split('.', 1)
 
@@ -105,7 +94,7 @@ def readItem(l1, db):
 
         l1[0] = l2[1]
 
-        ln = readItem(l1, child)
+        ln = read_item(l1, child)
 
         db[l2[0]] = child
 
@@ -116,23 +105,19 @@ def readItem(l1, db):
 
         if l2[0][0] == '[':
             l3 = l2[0][1:-1].split(',')
-            storeValue(db, l1[0], l3)
+            store_value(db, l1[0], l3)
         else:
-            storeValue(db, l1[0], l2[0])
+            store_value(db, l1[0], l2[0])
 
         return l2[1]
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def readBlock(ln, db):
+def read_block(ln, db):
     while True:
 
         if ln[0:7] == 'include':
             l1 = ln.split(';', 1)
-            deepFileParser(l1[0][8:-1], db)
+            deep_file_name(l1[0][8:-1], db)
             ln = l1[1]
             continue
 
@@ -156,22 +141,18 @@ def readBlock(ln, db):
             child = Properties()
             ln = l1[1][1:]
 
-            ln = readBlock(ln, child)
+            ln = read_block(ln, child)
 
             db.store(l1[0], child)
 
         else:
-            ln = readItem(l1, db)
+            ln = read_item(l1, db)
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
-
-def fileParser(fileName):
+def file_parser(file_name):
     db = Properties()
 
-    f = open(fileName)
+    f = open(file_name)
 
     f2 = ''
 
@@ -179,65 +160,51 @@ def fileParser(fileName):
         if not line.startswith('#'):
             f2 = f2 + line
 
-    ln = open(fileName).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
+    # ln = open(file_name).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
     ln = f2.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
 
-    readBlock(ln, db)
+    read_block(ln, db)
 
     return db
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+def deep_file_name(file_name, db):
+    ln = open(file_name).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
 
-def deepFileParser(fileName, db):
-    ln = open(fileName).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
-
-    readBlock(ln, db)
+    read_block(ln, db)
 
     return db
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+class NodeTable:
 
-class nodeTable:
-
-    def __init__(self, label, subLabel="None"):
+    def __init__(self, label, sub_label="None"):
         self.label = label
-        self.subLabel = subLabel
+        self.sub_label = sub_label
         self.data = []
 
 
-# -------------------------------------------------------------------------------
-#
-# -------------------------------------------------------------------------------
+def read_node_table(file_name, label, nodes=None):
+    fin = open(file_name, 'r')
 
-def readNodeTable(fileName, label, nodes=None):
-    fin = open(fileName, 'r')
-
-    startLabel = str('<' + label)
-    endLabel = str('</' + label)
+    start_label = str('<' + label)
+    end_label = str('</' + label)
 
     output = []
 
     for line in fin:
 
-        if line.strip().startswith(startLabel) == True:
+        if line.strip().startswith(start_label):
 
-            nt = nodeTable(label)
+            nt = NodeTable(label)
 
             if 'name' in line:
-                subLabel = line.split('=')[1].replace('\n', '').replace('>', '').replace(' ', '').replace('\"',
-                                                                                                          '').replace(
-                    '\'', '')
-                nt.subLabel = subLabel
+                sub_label = line.split('=')[1].replace('\n', '').replace('>', '').replace(' ', '').replace('\"', '').replace('\'', '')
+                nt.sub_label = sub_label
 
             for line in fin:
 
-                if line.strip().startswith(endLabel) == True:
+                if line.strip().startswith(end_label):
                     output.append(nt)
                     break
 
@@ -250,14 +217,14 @@ def readNodeTable(fileName, label, nodes=None):
                         lhs = splitRel[0]
                         rhs = splitRel[1]
 
-                        if not isNodeDof(lhs):
+                        if not is_node_dof(lhs):
                             raise RuntimeError(str(lhs) + ' is not a NodeDof')
 
-                        dofType, nodeIDs = decodeNodeDof(lhs, nodes)
+                        dof_type, node_ids = decode_node_dof(lhs, nodes)
 
-                        if getType(rhs) is float or getType(rhs) is int:
-                            for nodeID in nodeIDs:
-                                nt.data.append([dofType, int(nodeID), float(eval(rhs))])
+                        if get_type(rhs) is float or get_type(rhs) is int:
+                            for node_id in node_ids:
+                                nt.data.append([dof_type, int(node_id), float(eval(rhs))])
                         else:
                             rhs = rhs.replace(" ", "").replace("+", " +").replace("-", " -")
                             splitrhs = rhs.split(" ")
@@ -266,24 +233,24 @@ def readNodeTable(fileName, label, nodes=None):
                                 if irhs == "":
                                     continue
                                 if '[' not in irhs:
-                                    for nodeID in nodeIDs:
-                                        nt.data.append([dofType, int(nodeID), float(eval(irhs))])
+                                    for node_id in node_ids:
+                                        nt.data.append([dof_type, int(node_id), float(eval(irhs))])
                                 else:
                                     eq_rhs = irhs.split("*")
                                     factor = 1.0
 
                                     for ieq_rhs in eq_rhs:
-                                        if (getType(ieq_rhs) is float) or (getType(ieq_rhs) is int):
-                                            factor = cleanVariable(ieq_rhs)
+                                        if (get_type(ieq_rhs) is float) or (get_type(ieq_rhs) is int):
+                                            factor = clean_variable(ieq_rhs)
                                         else:
-                                            if isNodeDof(ieq_rhs):
+                                            if is_node_dof(ieq_rhs):
                                                 if '-' in ieq_rhs:
                                                     factor = -1.0;
                                                 ieq_rhs = ieq_rhs.replace("-", "").replace("+", "")
-                                                slaveDofType, slaveNodeID = decodeNodeDof(ieq_rhs, nodes)
+                                                slaveDofType, slaveNodeID = decode_node_dof(ieq_rhs, nodes)
 
-                                    for nodeID in nodeIDs:
-                                        dt = [dofType, int(nodeID), rhs, slaveDofType, slaveNodeID, factor]
+                                    for node_id in node_ids:
+                                        dt = [dof_type, int(node_id), rhs, slaveDofType, slaveNodeID, factor]
                                         nt.data.append(dt)
 
     return output

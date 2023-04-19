@@ -6,9 +6,9 @@ from pyfem.fem.Contact import Contact
 from pyfem.fem.DofSpace import DofSpace
 from pyfem.fem.ElementSet import ElementSet
 from pyfem.fem.NodeSet import NodeSet
-from pyfem.utils.dataStructures import GlobalData
+from pyfem.utils.data_structures import GlobalData
 from pyfem.utils.logger import setLogger
-from pyfem.utils.parser import fileParser
+from pyfem.utils.parser import file_parser
 
 
 def input_reader(argv):
@@ -24,9 +24,9 @@ def input_read(fname, dname=None, parameters=None):
 
     if fname is not None:
         if fname[-4:] == '.pro':
-            props = fileParser(fname)
+            props = file_parser(fname)
         else:
-            props = fileParser(fname + '.pro')
+            props = file_parser(fname + '.pro')
 
     if parameters is not None:
         for p in parameters:

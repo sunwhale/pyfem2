@@ -2,7 +2,7 @@ from numpy import ndarray
 from pylab import plot, xlabel, ylabel, ion, gcf
 
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.dataStructures import Properties
+from pyfem.utils.data_structures import Properties
 
 
 class GraphWriter(BaseModule):
@@ -57,12 +57,10 @@ class GraphWriter(BaseModule):
             ylabel(self.columns[1])
 
             ion()
+        else:
+            self.output = None
 
         self.run(props, globdat)
-
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
 
     def run(self, props, globdat):
 
@@ -86,8 +84,8 @@ class GraphWriter(BaseModule):
                     data = b
             elif col.type in globdat.outputNames:
                 data = globdat.getData(col.type, col.node)
-            elif hasattr(globdat.solverStatus, col.type):
-                data = getattr(globdat.solverStatus, col.type)
+            elif hasattr(globdat.SolverStatus, col.type):
+                data = getattr(globdat.SolverStatus, col.type)
 
             data = data * col.factor
 
@@ -116,4 +114,4 @@ class GraphWriter(BaseModule):
         '''
 
         if not globdat.active:
-            self.outfile.close
+            self.outfile.close()

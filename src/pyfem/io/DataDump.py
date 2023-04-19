@@ -19,13 +19,11 @@ class DataDump(BaseModule):
         if self.lastOnly:
             self.interval = 1
 
-    # ------------------------------------------------------------------------------
-    #
-    # ------------------------------------------------------------------------------
+
 
     def run(self, props, globdat):
 
-        cycle = globdat.solverStatus.cycle
+        cycle = globdat.SolverStatus.cycle
 
         if cycle % self.interval == 0:
             data = {}
