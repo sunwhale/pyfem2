@@ -25,7 +25,7 @@ class ContourWriter(BaseModule):
 
         logger.info("Writing contour file ......\n")
 
-        crd = globdat.nodes.getNodeCoords(self.nodes[0])
+        crd = globdat.nodes.get_node_coords(self.nodes[0])
         outfile = open(self.prefix + '-contour-' + str(self.k) + '.out', 'w')
 
         outfile.write('#Node  %-10s %-10s' % ('x-coor', 'y-coor'))
@@ -42,7 +42,7 @@ class ContourWriter(BaseModule):
         outfile.write('\n')
 
         for iNod in self.nodes:
-            crd = globdat.nodes.getNodeCoords(iNod)
+            crd = globdat.nodes.get_node_coords(iNod)
             outfile.write('%4i %10.3e %10.3e' % (iNod, crd[0], crd[1]))
 
             if len(crd) == 3:

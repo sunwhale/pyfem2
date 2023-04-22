@@ -1,0 +1,1 @@
+C:\Users\JSun\.conda\envs\pyfem\python.exe F:\Github\pyfem\docs\app.py %*

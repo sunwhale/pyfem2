@@ -1,7 +1,7 @@
 import logging
 
 
-def setLogger(props):
+def set_logger(props):
     level = "normal"
 
     if hasattr(props, "logger"):

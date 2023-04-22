@@ -9,6 +9,8 @@ Subpackages
 
    pyfem.assembly
    pyfem.elements
+   pyfem.fem
+   pyfem.io
    pyfem.materials
    pyfem.mesh
    pyfem.solvers

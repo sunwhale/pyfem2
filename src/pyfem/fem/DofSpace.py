@@ -7,7 +7,7 @@ from scipy.sparse.linalg import spsolve
 
 from pyfem.fem.Constrainer import Constrainer
 from pyfem.utils.parser import read_node_table
-from pyfem.utils.itemList import itemList
+from pyfem.utils.item_list import ItemList
 from pyfem.utils.logger import getLogger
 
 logger = getLogger()
@@ -30,7 +30,7 @@ class DofSpace:
         self.nodes = elements.nodes
 
         # Create the ID map
-        self.IDmap = itemList()
+        self.IDmap = ItemList()
         for ind, ID in enumerate(elements.nodes):
             self.IDmap.add(ID, ind)
 
@@ -69,7 +69,7 @@ class DofSpace:
 
 
 
-    def readFromFile(self, fname):
+    def read_from_file(self, fname):
 
         logger.info("Reading constraints ..........")
 
@@ -188,7 +188,7 @@ class DofSpace:
         Returns the node ID of dofID
         '''
 
-        return self.nodes.findID(int(where(self.dofs == dofID)[0]))
+        return self.nodes.find_id(int(where(self.dofs == dofID)[0]))
 
 
 

@@ -1,11 +1,10 @@
 gmsh = "rectangle.msh"
 
 <NodeConstraints>
- u[right] = 2.5;
- v[right] = 0.0;
  u[left] = 0.0;
  v[left] = 0.0;
 </NodeConstraints>
 
 <ExternalForces>
+ u[1] = 1000;
 </ExternalForces>

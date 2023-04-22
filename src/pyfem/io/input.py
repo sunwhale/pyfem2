@@ -1,90 +1,100 @@
-import getopt
+import argparse
 import os.path
 import pickle
+import sys
 
 from pyfem.fem.Contact import Contact
 from pyfem.fem.DofSpace import DofSpace
 from pyfem.fem.ElementSet import ElementSet
 from pyfem.fem.NodeSet import NodeSet
-from pyfem.utils.data_structures import GlobalData
-from pyfem.utils.logger import setLogger
+from pyfem.utils.data_structures import Properties, GlobalData
+from pyfem.utils.logger import set_logger
 from pyfem.utils.parser import file_parser
 
 
-def input_reader(argv):
-    pName, dName, params = get_arguments(argv)
-    return input_read(pName, dName, params)
+def input_reader():
+    inp_file_name, out_file_name, parameters = get_arguments()
 
+    props = Properties()
 
-def input_read(fname, dname=None, parameters=None):
-    if dname is not None:
-        with open(dname, 'rb') as f:
+    if out_file_name is not None:
+        with open(out_file_name, 'rb') as f:
             data = pickle.load(f)
             props = data["props"]
 
-    if fname is not None:
-        if fname[-4:] == '.pro':
-            props = file_parser(fname)
+    if inp_file_name is not None:
+        if inp_file_name[-4:] == '.pro':
+            props = file_parser(inp_file_name)
         else:
-            props = file_parser(fname + '.pro')
+            props = file_parser(inp_file_name + '.pro')
 
     if parameters is not None:
         for p in parameters:
             x = p.split("=")
             props.store(x[0], x[1])
 
-    if dname is not None:
+    if out_file_name is not None:
         return props, data["globdat"]
 
-    dataFileName = props.input
+    input_file_name = props.input
 
-    logger = setLogger(props)
+    logger = set_logger(props)
 
     nodes = NodeSet()
-    nodes.readFromFile(dataFileName)
+    nodes.read_from_file(input_file_name)
     logger.info(nodes)
 
     elems = ElementSet(nodes, props)
-    elems.readFromFile(dataFileName)
+    elems.read_from_file(input_file_name)
     logger.info(elems)
 
     dofs = DofSpace(elems)
-    dofs.readFromFile(dataFileName)
+    dofs.read_from_file(input_file_name)
 
     globdat = GlobalData(nodes, elems, dofs)
 
-    globdat.readFromFile(dataFileName)
+    globdat.read_from_file(input_file_name)
 
     globdat.active = True
-    globdat.prefix = os.path.splitext(fname)[0]
+    globdat.prefix = os.path.splitext(inp_file_name)[0]
 
     globdat.contact = Contact(props)
 
     return props, globdat
 
 
-def get_arguments(argv):
-    slist = 'd:i:hvp:'
-    llist = ['dump=', 'input=', 'help', 'version']
+def get_arguments() -> tuple[str, str, list[str]]:
 
-    options, remainder = getopt.getopt(argv[1:], slist, llist)
+    # 创建一个 argparse 解析器对象
+    parser = argparse.ArgumentParser(add_help=False)
 
-    pro_file_name = None
-    dump_file_name = None
-    parameters = []
+    # 添加程序输入文件选项
+    parser.add_argument('-i', metavar='input', type=str,
+                        help='Identify the input file name.')
 
-    if len(options) == 0:
-        pro_file_name = argv[1]
-        options, remainder = getopt.getopt(argv[2:], slist, llist)
+    # 添加程序输出文件选项
+    parser.add_argument('-o', metavar='output', type=str,
+                        help='Identify the output file name.')
 
-    for opt, arg in options:
-        if opt in ('-i', '--input'):
-            pro_file_name = arg
-        elif opt in ('-d', '--dump'):
-            dump_file_name = arg
-        elif opt in ('-h', '--help'):
-            print("Help")
-        elif opt in ('-p', '--param'):
-            parameters.append(arg)
+    # 添加参数选项
+    parser.add_argument('-p', metavar='parameter', type=str, action='append',
+                        help='Parameters to pass to the program.')
 
-    return pro_file_name, dump_file_name, parameters
+    # 添加帮助选项
+    parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                        help='Show this help message and exit.')
+
+    # 添加版本选项
+    parser.add_argument('-v', '--version', action='version', help='Show program\'s version number and exit.',
+                        version='%(prog)s 0.1')
+
+    # 解析命令行参数
+    args = parser.parse_args()
+
+    # 如果未指定程序输入文件，则打印帮助并退出
+    if not args.i:
+        print('error: the input file is required.')
+        parser.print_help()
+        sys.exit()
+
+    return args.i, args.o, args.p

@@ -80,9 +80,9 @@ class HDF5Writer(BaseModule):
             elemCount.append(i0)
             connectivity.extend(elem)
 
-        connectivity = np.array(globdat.nodes.getIndices(connectivity), dtype=int)
+        connectivity = np.array(globdat.nodes.get_indices(connectivity), dtype=int)
         elemCount = np.array(elemCount, dtype=int)
-        elemIDs = np.array(globdat.elements.getIndices(), dtype=int)
+        elemIDs = np.array(globdat.elements.get_indices(), dtype=int)
         familyIDs = np.array(globdat.elements.getFamilyIDs(), dtype=int)
 
         cdat["elements"].create_dataset("offsets", elemCount.shape, dtype='i', data=elemCount)
@@ -93,7 +93,7 @@ class HDF5Writer(BaseModule):
         cdat.create_group("elementGroups")
 
         for key in globdat.elements.groups:
-            elementIDs = np.array(globdat.elements.getIndices(globdat.elements.groups[key]), dtype=int)
+            elementIDs = np.array(globdat.elements.get_indices(globdat.elements.groups[key]), dtype=int)
             cdat["elementGroups"].create_dataset(key, elementIDs.shape, dtype='i', data=elementIDs)
 
         cdat.create_group("nodes")
@@ -101,10 +101,10 @@ class HDF5Writer(BaseModule):
         coordinates = []
 
         for node_id in list(globdat.nodes.keys()):
-            coordinates.append(globdat.nodes.getNodeCoords(node_id))
+            coordinates.append(globdat.nodes.get_node_coords(node_id))
 
         coordinates = np.array(coordinates, dtype=float)
-        node_ids = np.array(globdat.nodes.getIndices(), dtype=int)
+        node_ids = np.array(globdat.nodes.get_indices(), dtype=int)
 
         cdat["nodes"].create_dataset("coordinates", coordinates.shape, dtype='f', data=coordinates)
         cdat["nodes"].create_dataset("node_ids", node_ids.shape, dtype='i', data=node_ids)
@@ -114,7 +114,7 @@ class HDF5Writer(BaseModule):
         cdat.create_group("nodeGroups")
 
         for key in globdat.nodes.groups:
-            node_ids = np.array(globdat.nodes.getIndices(globdat.nodes.groups[key]), dtype=int)
+            node_ids = np.array(globdat.nodes.get_indices(globdat.nodes.groups[key]), dtype=int)
             cdat["nodeGroups"].create_dataset(key, node_ids.shape, dtype='i', data=node_ids)
 
         cdat.create_group("nodeData")

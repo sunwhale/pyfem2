@@ -38,7 +38,7 @@ def assembleArray(props, globdat, rank, action):
             el_nodes = element.getNodes()
 
             # Get the element coordinates
-            el_coords = globdat.nodes.getNodeCoords(el_nodes)
+            el_coords = globdat.nodes.get_node_coords(el_nodes)
 
             # Get the element degrees of freedom
             el_dofs = globdat.dofs.getForTypes(el_nodes, element.dofTypes)

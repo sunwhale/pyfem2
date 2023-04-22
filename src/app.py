@@ -11,11 +11,11 @@ from pyfem.solvers.Solver import Solver
 
 t1 = time.time()
 
-props, globdat = input_reader(sys.argv)
+props, globdat = input_reader()
 
-print(type(props))
-print(type(globdat))
-
+# print(props)
+# print(type(globdat))
+#
 solver = Solver(props, globdat)
 output = OutputManager(props, globdat)
 

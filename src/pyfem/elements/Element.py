@@ -59,11 +59,11 @@ class Element(list):
             outWeights = getattr(self.globdat, name + 'Weights')
 
             if data.ndim == 1:
-                for idx in self.globdat.nodes.getIndices(self):
+                for idx in self.globdat.nodes.get_indices(self):
                     outMat[idx] += data[i]
                     outWeights[idx] += weight
             else:
-                for j, idx in enumerate(self.globdat.nodes.getIndices(self)):
+                for j, idx in enumerate(self.globdat.nodes.get_indices(self)):
                     outMat[idx] += data[j, i]
                     outWeights[idx] += weight
 

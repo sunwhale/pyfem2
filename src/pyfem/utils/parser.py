@@ -1,27 +1,27 @@
 from pyfem.utils.data_structures import Properties
 
 
-def has_value(db, val):
+def has_value(props, val):
     """
     Addition of two numbers
 
-    :param db: a
-    :type db:  integer
+    :param props: a
+    :type props:  integer
     :param val: btted
     :type val:  integer
     :returns: new value
     :rtype:   integer
     """
 
-    keys = list(db.keys())
+    keys = list(props.keys())
 
     for key in keys:
 
-        if type(db[key]) == dict:
-            if has_value(db[key], val):
+        if type(props[key]) == dict:
+            if has_value(props[key], val):
                 return True
         else:
-            if db[key] == val:
+            if props[key] == val:
                 return True
     return False
 
@@ -70,23 +70,23 @@ def get_type(a):
     return type(clean_variable(a))
 
 
-def store_value(db, key, a):
+def store_value(props, key, a):
     if type(a) == list:
         tmp = []
         for v in a:
             tmp.append(clean_variable(v))
-        db.store(key, tmp)
+        props.store(key, tmp)
     else:
-        db.store(key, clean_variable(a))
+        props.store(key, clean_variable(a))
 
 
-def read_item(l1, db):
+def read_item(l1, props):
     if '.' in l1[0]:
         l2 = l1[0].split('.', 1)
 
-        if l2[0] in db:
-            if type(db[l2[0]]) == dict:
-                child = db[l2[0]]
+        if l2[0] in props:
+            if type(props[l2[0]]) == dict:
+                child = props[l2[0]]
             else:
                 child = Properties()
         else:
@@ -96,7 +96,7 @@ def read_item(l1, db):
 
         ln = read_item(l1, child)
 
-        db[l2[0]] = child
+        props[l2[0]] = child
 
         return ln
 
@@ -105,19 +105,29 @@ def read_item(l1, db):
 
         if l2[0][0] == '[':
             l3 = l2[0][1:-1].split(',')
-            store_value(db, l1[0], l3)
+            store_value(props, l1[0], l3)
         else:
-            store_value(db, l1[0], l2[0])
+            store_value(props, l1[0], l2[0])
 
         return l2[1]
 
 
-def read_block(ln, db):
+def read_block(ln: str, props: Properties) -> str:
+    """
+    该函数的作用是解析一个字符串，该字符串包含嵌套式的属性块。
+    代码的主要逻辑是一个 while 循环，不断对 ln 进行解析。
+    如果该行是 "include" 命令，则调用一个名为 deep_file_name 的函数来处理所包含的文件。
+    如果该行以 "//" 开头，则忽略该行。
+    如果该行包含一个属性名和值，则将该属性存储在 props 对象中。
+    如果该行包含一个属性块，则递归调用 read_block 函数来解析该块，并将其存储在一个 child 对象中，然后将 child 对象和该属性的名称一起存储在 props 对象中。
+    :param ln:
+    :param props:
+    :return:
+    """
     while True:
-
-        if ln[0:7] == 'include':
+        if ln.startswith('include'):
             l1 = ln.split(';', 1)
-            deep_file_name(l1[0][8:-1], db)
+            deep_file_name(l1[0][8:-1], props)
             ln = l1[1]
             continue
 
@@ -126,54 +136,54 @@ def read_block(ln, db):
         if len(l1) == 1:
             return ln
 
-        if l1[0][0:2] == '};':
+        if l1[0].startswith('};'):
             return ln[2:]
 
-        if l1[0][0:2] == '//':
+        if l1[0].startswith('//'):
             ln = l1[1].split(';', 1)[1]
             continue
 
-        # if l1[0][0:1] == '#':
-        #  ln = l1[1].split(';',1)[1]
-        #  continue
-
-        if l1[1][0] == '{':
+        if l1[1].startswith('{'):
             child = Properties()
             ln = l1[1][1:]
-
             ln = read_block(ln, child)
-
-            db.store(l1[0], child)
-
+            props.store(l1[0], child)
         else:
-            ln = read_item(l1, db)
+            ln = read_item(l1, props)
 
 
-def file_parser(file_name):
-    db = Properties()
+def file_parser(file_name: str) -> Properties:
+    """
+    配置文件解析器。
+    :param file_name:
+    :return:
+    """
+    props = Properties()
+    with open(file_name, 'r') as f:
+        content = f.readlines()
+    # 去除注释和空格
+    content = [line.strip() for line in content if not line.startswith('#')]
+    # 合并行以及去除无意义的字符
+    cleaned_contents = ''.join(content).replace('\t', '').replace('\r', '').replace(' ', '')
+    # 更新props
+    read_block(cleaned_contents, props)
+    return props
 
-    f = open(file_name)
 
-    f2 = ''
-
-    for line in f:
-        if not line.startswith('#'):
-            f2 = f2 + line
-
-    # ln = open(file_name).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
-    ln = f2.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
-
-    read_block(ln, db)
-
-    return db
-
-
-def deep_file_name(file_name, db):
-    ln = open(file_name).read().replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
-
-    read_block(ln, db)
-
-    return db
+def deep_file_name(file_name: str, props: Properties) -> Properties:
+    """
+    处理配置文件中的include文件。
+    :param file_name:
+    :param props:
+    :return:
+    """
+    with open(file_name, 'r') as f:
+        content = f.read()
+    # 去除无意义的字符
+    cleaned_contents = content.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '')
+    # 更新props
+    read_block(cleaned_contents, props)
+    return props
 
 
 class NodeTable:
@@ -199,7 +209,9 @@ def read_node_table(file_name, label, nodes=None):
             nt = NodeTable(label)
 
             if 'name' in line:
-                sub_label = line.split('=')[1].replace('\n', '').replace('>', '').replace(' ', '').replace('\"', '').replace('\'', '')
+                sub_label = line.split('=')[1].replace('\n', '').replace('>', '').replace(' ', '').replace('\"',
+                                                                                                           '').replace(
+                    '\'', '')
                 nt.sub_label = sub_label
 
             for line in fin:

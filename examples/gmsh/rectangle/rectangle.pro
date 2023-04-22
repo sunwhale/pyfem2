@@ -45,3 +45,10 @@ graph =
     dof  = "u";
   };
 };
+
+output =
+{
+  type = "OutputWriter";
+
+  onScreen = true;
+};

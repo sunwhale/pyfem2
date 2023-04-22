@@ -1,17 +1,17 @@
 import re
 
 from pyfem.utils.data_structures import SolverStatus
-from pyfem.utils.itemList import itemList
+from pyfem.utils.item_list import ItemList
 from pyfem.utils.logger import getLogger
 
 logger = getLogger()
 
 
-class ElementSet(itemList):
+class ElementSet(ItemList):
 
     def __init__(self, nodes, props):
 
-        itemList.__init__(self)
+        ItemList.__init__(self)
 
         self.nodes = nodes
         self.props = props
@@ -33,17 +33,17 @@ class ElementSet(itemList):
 
 
     def __repr__(self):
-        msg = "Number of elements ......... %6d\n" % len(self)
+        str_ = "Number of elements ......... %6d\n" % len(self)
 
         if len(self.groups) > 0:
-            msg += "  Number of  groups .......... %6d\n" % len(self.groups)
-            msg += "  -----------------------------------\n"
-            msg += "    name                       #elems\n"
-            msg += "    ---------------------------------\n"
+            str_ += "  Number of  groups .......... %6d\n" % len(self.groups)
+            str_ += "  -----------------------------------\n"
+            str_ += "    name                       #elems\n"
+            str_ += "    ---------------------------------\n"
             for name in self.groups:
-                msg += "    %-16s           %6d\n" % (name, len(self.groups[name]))
+                str_ += "    %-16s           %6d\n" % (name, len(self.groups[name]))
 
-        return msg
+        return str_
 
 
 
@@ -60,7 +60,7 @@ class ElementSet(itemList):
 
 
 
-    def readFromFile(self, fname):
+    def read_from_file(self, fname):
 
         logger.info("Reading elements .............")
 
@@ -90,12 +90,12 @@ class ElementSet(itemList):
             elif line.startswith('gmsh') == True:
                 ln = line.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '').replace(';', '')
                 ln = ln.split('=', 1)
-                self.readGmshFile(ln[1][1:-1])
+                self.read_gmsh_file(ln[1][1:-1])
                 return
 
 
 
-    def readGmshFile(self, fname):
+    def read_gmsh_file(self, fname):
 
         import meshio
 
@@ -126,18 +126,18 @@ class ElementSet(itemList):
             if not hasattr(modelProps, 'type'):
                 raise RuntimeError('Missing type for model ' + modelName)
 
-            modelType = getattr(modelProps, 'type')
+            model_type = getattr(modelProps, 'type')
 
             modelProps.rank = self.nodes.rank
             modelProps.solverStat = self.solverStat
 
-            element = getattr(__import__('pyfem.elements.' + modelType, globals(), locals(), modelType, 0), modelType)
+            element = getattr(__import__('pyfem.elements.' + model_type, globals(), locals(), model_type, 0), model_type)
 
             # Create the element
 
             elem = element(elementNodes, modelProps)
 
-            #  Check if the node IDs are valid:
+            #  Check if the node ids are valid:
 
             for node_id in elem.getNodes():
                 if not node_id in self.nodes:
@@ -145,20 +145,20 @@ class ElementSet(itemList):
 
             #  Add the element to the element set:
 
-            itemList.add(self, ID, elem)
+            ItemList.add(self, ID, elem)
 
             #  Add the element to the correct group:
 
-            self.addToGroup(modelName, ID)
+            self.add_to_group(modelName, ID)
 
 
 
-    def addToGroup(self, modelType, ID):
+    def add_to_group(self, model_type, ID):
 
-        if modelType not in self.groups:
-            self.groups[modelType] = [ID]
+        if model_type not in self.groups:
+            self.groups[model_type] = [ID]
         else:
-            self.groups[modelType].append(ID)
+            self.groups[model_type].append(ID)
 
 
 
