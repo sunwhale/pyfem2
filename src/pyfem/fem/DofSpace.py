@@ -7,10 +7,10 @@ from scipy.sparse.linalg import spsolve
 
 from pyfem.fem.Constrainer import Constrainer
 from pyfem.utils.parser import read_node_table
-from pyfem.utils.item_list import ItemList
-from pyfem.utils.logger import getLogger
+from pyfem.utils.IntegerIdDict import IntegerIdDict
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 class DofSpace:
@@ -24,15 +24,15 @@ class DofSpace:
         Constructor
         '''
 
-        self.dofTypes = elements.getDofTypes()
-        self.dofs = array(list(range(len(elements.nodes) * len(self.dofTypes)))).reshape(
-            (len(elements.nodes), len(self.dofTypes)))
+        self.dof_types = elements.get_dof_types()
+        self.dofs = array(list(range(len(elements.nodes) * len(self.dof_types)))).reshape(
+            (len(elements.nodes), len(self.dof_types)))
         self.nodes = elements.nodes
 
         # Create the ID map
-        self.IDmap = ItemList()
+        self.IDmap = IntegerIdDict()
         for ind, ID in enumerate(elements.nodes):
-            self.IDmap.add(ID, ind)
+            self.IDmap.add_item_by_id(ID, ind)
 
         self.allConstrainedDofs = []
 
@@ -109,13 +109,13 @@ class DofSpace:
                 if not node_id in self.nodes:
                     raise RuntimeError('Node ID ' + str(node_id) + ' does not exist')
 
-                ind = self.IDmap.get(node_id)
+                ind = self.IDmap.get_items_by_ids(node_id)
 
-                if dof_type not in self.dofTypes:
+                if dof_type not in self.dof_types:
                     raise RuntimeError('DOF type "' + dof_type + '" does not exist')
 
                 if len(item) == 3:
-                    dofID = self.dofs[ind, self.dofTypes.index(dof_type)]
+                    dofID = self.dofs[ind, self.dof_types.index(dof_type)]
 
                     cons.addConstraint(dofID, val, label)
                 else:
@@ -126,14 +126,14 @@ class DofSpace:
                     if not slaveNodeID[0] in self.nodes:
                         raise RuntimeError('Node ID ' + str(slaveNodeID) + ' does not exist')
 
-                    slaveInd = self.IDmap.get(slaveNodeID)
+                    slaveInd = self.IDmap.get_items_by_ids(slaveNodeID)
 
-                    if slaveDofType not in self.dofTypes:
+                    if slaveDofType not in self.dof_types:
                         raise RuntimeError('DOF type "' + slaveDofType + '" does not exist')
 
-                    slaveDof = self.dofs[slaveInd, self.dofTypes.index(slaveDofType)]
+                    slaveDof = self.dofs[slaveInd, self.dof_types.index(slaveDofType)]
 
-                    dofID = self.dofs[ind, self.dofTypes.index(dof_type)]
+                    dofID = self.dofs[ind, self.dof_types.index(dof_type)]
 
                     cons.addConstraint(dofID, [val, slaveDof, factor], label)
 
@@ -152,11 +152,11 @@ class DofSpace:
         Returns all dofIDs for given dof_type for a list of nodes
         '''
 
-        return self.dofs[self.IDmap.get(node_ids), self.dofTypes.index(dof_type)]
+        return self.dofs[self.IDmap.get_items_by_ids(node_ids), self.dof_types.index(dof_type)]
 
 
 
-    def getForTypes(self, node_ids, dofTypes):
+    def getForTypes(self, node_ids, dof_types):
 
         '''
         Returns all dofIDs for given list of dof_type for a list of nodes
@@ -165,8 +165,8 @@ class DofSpace:
         dofs = []
 
         for node in node_ids:
-            for dof_type in dofTypes:
-                dofs.append(self.dofs[self.IDmap.get(node), self.dofTypes.index(dof_type)])
+            for dof_type in dof_types:
+                dofs.append(self.dofs[self.IDmap.get_items_by_ids(node), self.dof_types.index(dof_type)])
 
         return dofs
 
@@ -188,7 +188,7 @@ class DofSpace:
         Returns the node ID of dofID
         '''
 
-        return self.nodes.find_id(int(where(self.dofs == dofID)[0]))
+        return self.nodes.get_id_by_index(int(where(self.dofs == dofID)[0]))
 
 
 
@@ -208,19 +208,19 @@ class DofSpace:
         Returns the name of the dof_type
         '''
 
-        return self.dofTypes[self.get_type(dofID)]
+        return self.dof_types[self.get_type(dofID)]
 
 
 
-    def get(self, node_ids):
+    def get_items_by_ids(self, node_ids):
 
         '''Returns all dofIDs for a list of nodes'''
 
-        return self.dofs[self.IDmap.get(node_ids)].flatten()
+        return self.dofs[self.IDmap.get_items_by_ids(node_ids)].flatten()
 
 
 
-    def copyConstrainer(self, dofTypes: list = None):
+    def copyConstrainer(self, dof_types: list = None):
 
         '''
         
@@ -228,11 +228,11 @@ class DofSpace:
 
         newCons = deepcopy(self.cons)
 
-        if type(dofTypes) is str:
-            dofTypes = [dofTypes]
+        if type(dof_types) is str:
+            dof_types = [dof_types]
 
-        for dof_type in dofTypes:
-            for iDof in self.dofs[:, self.dofTypes.index(dof_type)]:
+        for dof_type in dof_types:
+            for iDof in self.dofs[:, self.dof_types.index(dof_type)]:
                 for label in newCons.constrainedFac.keys():
                     newCons.addConstraint(iDof, 0.0, label)
 

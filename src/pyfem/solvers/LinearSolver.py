@@ -2,9 +2,9 @@ from numpy import zeros
 
 from pyfem.fem.Assembly import assembleInternalForce, assembleExternalForce, assembleTangentStiffness, commit
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 
@@ -30,12 +30,12 @@ class LinearSolver(BaseModule):
 
         globdat.state = globdat.dofs.solve(K, fext)
 
-        globdat.Dstate = globdat.state - state0
+        globdat.dstate = globdat.state - state0
 
         globdat.fint = assembleInternalForce(props, globdat)
 
         commit(props, globdat)
 
-        globdat.elements.commitHistory()
+        globdat.elements.commit_history()
 
         globdat.active = False

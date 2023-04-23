@@ -17,7 +17,7 @@ class BaseMaterial:
         self.newHistory = {}
 
         self.outLabels = []
-        self.solverStat = props.solverStat
+        self.solver_status = props.solver_status
 
     def setHistoryParameter(self, name, val):
 
@@ -31,7 +31,7 @@ class BaseMaterial:
         else:
             return self.oldHistory[name].copy()
 
-    def commitHistory(self):
+    def commit_history(self):
 
         self.oldHistory = copy.deepcopy(self.newHistory)
 

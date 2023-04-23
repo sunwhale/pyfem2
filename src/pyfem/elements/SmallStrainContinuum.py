@@ -13,11 +13,11 @@ class SmallStrainContinuum(Element):
         self.rank = props.rank
 
         if self.rank == 2:
-            self.dofTypes = ['u', 'v']
+            self.dof_types = ['u', 'v']
             self.nstr = 3
             self.outputLabels = ["s11", "s22", "s12"]
         elif self.rank == 3:
-            self.dofTypes = ['u', 'v', 'w']
+            self.dof_types = ['u', 'v', 'w']
             self.nstr = 6
             self.outputLabels = ["s11", "s22", "s33", "s23", "s13", "s12"]
 
@@ -39,7 +39,7 @@ class SmallStrainContinuum(Element):
             b = self.getBmatrix(iData.dhdx)
 
             self.kin.strain = dot(b, elemdat.state)
-            self.kin.dstrain = dot(b, elemdat.Dstate)
+            self.kin.dstrain = dot(b, elemdat.dstate)
 
             sigma, tang = self.mat.getStress(self.kin)
 
@@ -61,7 +61,7 @@ class SmallStrainContinuum(Element):
             b = self.getBmatrix(iData.dhdx)
 
             self.kin.strain = dot(b, elemdat.state)
-            self.kin.dstrain = dot(b, elemdat.Dstate)
+            self.kin.dstrain = dot(b, elemdat.dstate)
 
             sigma, tang = self.mat.getStress(self.kin)
 
@@ -79,7 +79,7 @@ class SmallStrainContinuum(Element):
             b = self.getBmatrix(iData.dhdx)
 
             self.kin.strain = dot(b, elemdat.state)
-            self.kin.dstrain = dot(b, elemdat.Dstate)
+            self.kin.dstrain = dot(b, elemdat.dstate)
 
             self.mat.getStress(self.kin)
 

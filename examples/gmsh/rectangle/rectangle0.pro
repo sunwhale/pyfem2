@@ -17,7 +17,7 @@ solver =
   type     = "LinearSolver";
 };
 
-outputModules = ["vtk"];
+outputModules = ["vtk", "graph"];
 
 vtk =
 {

@@ -590,7 +590,7 @@ def get_integration_points(element_type, order, method):
                 xi.append([float(ip[i].real), float(ip[j].real)])
                 weight.append(w[i] * w[j])
 
-    elif element_type[:-1] == "hexa":
+    elif element_type[:-1] == "hex":
         if element_type == "hex8":
             standard_order = 2
         else:

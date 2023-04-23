@@ -1,36 +1,36 @@
 import re
+import os
 
-from pyfem.utils.data_structures import SolverStatus
-from pyfem.utils.item_list import ItemList
-from pyfem.utils.logger import getLogger
+from pyfem.utils.data_structures import SolverStatus, Properties
+from pyfem.utils.IntegerIdDict import IntegerIdDict
+from pyfem.utils.logger import get_logger
+from pyfem.fem.NodeSet import NodeSet
 
-logger = getLogger()
+logger = get_logger()
+
+ELEMENTS_START = "<Elements>"
+ELEMENTS_END = "</Elements>"
+GROUP_START = "<ElementGroups"
+GROUP_END = "</ElementGroups>"
+GMSH_START = "gmsh"
+COMMENT_STARTERS = ["//", "#"]
 
 
-class ElementSet(ItemList):
+class ElementSet(IntegerIdDict):
 
-    def __init__(self, nodes, props):
+    def __init__(self, nodes: NodeSet, props: Properties):
 
-        ItemList.__init__(self)
+        IntegerIdDict.__init__(self)
 
         self.nodes = nodes
         self.props = props
-        self.solverStat = SolverStatus()
+        self.solver_status = SolverStatus()
         self.groups = {}
 
-
-
     def __iter__(self):
-
-        elements = []
-
-        for groupName in self.iterGroupNames():
-            for element in self.iterElementGroup(groupName):
-                elements.append(element)
-
-        return iter(elements)
-
-
+        for group_name in self.iter_group_names():
+            for element in self.iter_element_group(group_name):
+                yield element
 
     def __repr__(self):
         str_ = "Number of elements ......... %6d\n" % len(self)
@@ -45,26 +45,34 @@ class ElementSet(ItemList):
 
         return str_
 
+    def get_dof_types(self):
+        dof_types = {dof_type for element in self for dof_type in element.dof_types}
+        return list(dof_types)
 
-
-    def getDofTypes(self):
-
-        dofTypes = []
-
-        for element in self:
-            for dof_type in element.dofTypes:
-                if dof_type not in dofTypes:
-                    dofTypes.append(dof_type)
-
-        return dofTypes
-
-
-
-    def read_from_file(self, fname):
+    def read_from_file(self, file_name: str) -> None:
 
         logger.info("Reading elements .............")
 
-        fin = open(fname)
+        # with open(file_name, 'r') as f:
+        #     for line in f:
+        #         line = line.strip().replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', '')
+        #         if line.startswith(GMSH_START):  # If the line starts with GMSH_START, read a Gmsh file
+        #             clean_line = line.replace(';', '').replace('\"', '').replace('\'', '')
+        #             gmsh_file_name = clean_line.split('=')[1]
+        #             self.read_gmsh_file(gmsh_file_name)
+        #         elif line.startswith(ELEMENTS_START):  # If the line starts with NODES_START, read the node coordinates
+        #             self.read_node_coords(f)
+        #         elif line.startswith(GROUP_START):  # If the line starts with GROUP_START, read a node group
+        #             if 'name' in line:
+        #                 clean_line = line.replace('>', '').replace('\"', '').replace('\'', '')
+        #                 label = clean_line.split('=')[1]
+        #                 self.read_node_group(f, label)
+        #
+        #     # Remove duplicate entries in each group
+        #     for key in self.groups:
+        #         self.groups[key] = list(set(self.groups[key]))
+
+        fin = open(file_name)
 
         while True:
             line = fin.readline()
@@ -85,7 +93,7 @@ class ElementSet(ItemList):
                         if b[0].startswith("//") or b[0].startswith("#"):
                             break
                         if len(b) > 1 and type(eval(b[0])) == int:
-                            self.add(eval(b[0]), eval(b[1]), [eval(node_id) for node_id in b[2:]])
+                            self.add_item_by_id(eval(b[0]), eval(b[1]), [eval(node_id) for node_id in b[2:]])
 
             elif line.startswith('gmsh') == True:
                 ln = line.replace('\n', '').replace('\t', '').replace(' ', '').replace('\r', '').replace(';', '')
@@ -93,13 +101,11 @@ class ElementSet(ItemList):
                 self.read_gmsh_file(ln[1][1:-1])
                 return
 
-
-
-    def read_gmsh_file(self, fname):
+    def read_gmsh_file(self, file_name):
 
         import meshio
 
-        mesh = meshio.read(fname, file_format="gmsh")
+        mesh = meshio.read(file_name, file_format="gmsh")
 
         elemID = 0
 
@@ -107,14 +113,11 @@ class ElementSet(ItemList):
             for typ in mesh.cell_sets_dict[key]:
                 for idx in mesh.cell_sets_dict[key][typ]:
                     iNodes = mesh.cells_dict[typ][idx]
-                    self.add(elemID, key, iNodes.tolist())
+                    self.add_item_by_id(elemID, key, iNodes.tolist())
                     elemID = elemID + 1
 
-    # -------------------------------------------------------------------------------
-    #  add element
-    # -------------------------------------------------------------------------------
 
-    def add(self, ID, modelName, elementNodes):
+    def add_item_by_id(self, ID, modelName, elementNodes):
 
         # Check if the model exists
 
@@ -129,9 +132,10 @@ class ElementSet(ItemList):
             model_type = getattr(modelProps, 'type')
 
             modelProps.rank = self.nodes.rank
-            modelProps.solverStat = self.solverStat
+            modelProps.solver_status = self.solver_status
 
-            element = getattr(__import__('pyfem.elements.' + model_type, globals(), locals(), model_type, 0), model_type)
+            element = getattr(__import__('pyfem.elements.' + model_type, globals(), locals(), model_type, 0),
+                              model_type)
 
             # Create the element
 
@@ -145,13 +149,11 @@ class ElementSet(ItemList):
 
             #  Add the element to the element set:
 
-            ItemList.add(self, ID, elem)
+            IntegerIdDict.add_item_by_id(self, ID, elem)
 
             #  Add the element to the correct group:
 
             self.add_to_group(modelName, ID)
-
-
 
     def add_to_group(self, model_type, ID):
 
@@ -160,32 +162,24 @@ class ElementSet(ItemList):
         else:
             self.groups[model_type].append(ID)
 
-
-
-    def addGroup(self, groupName, groupIDs):
+    def add_group(self, groupName, groupIDs):
         self.groups[groupName] = groupIDs
 
-
-
-    def iterGroupNames(self):
+    def iter_group_names(self):
         return self.groups
 
-
-
-    def iterElementGroup(self, groupName):
+    def iter_element_group(self, groupName):
         if groupName == "All":
             return iter(self)
         elif isinstance(groupName, list):
             elems = []
             for name in groupName:
-                elems += self.get(self.groups[name])
+                elems += self.get_items_by_ids(self.groups[name])
             return iter(elems)
         else:
-            return iter(self.get(self.groups[groupName]))
+            return iter(self.get_items_by_ids(self.groups[groupName]))
 
-
-
-    def elementGroupCount(self, groupName):
+    def element_group_count(self, groupName):
         if groupName == "All":
             return len(self)
         elif isinstance(groupName, list):
@@ -196,11 +190,7 @@ class ElementSet(ItemList):
         else:
             return len(self.groups[groupName])
 
-    #
-    #
-    #
-
-    def getFamilyIDs(self):
+    def get_family_ids(self):
 
         familyIDs = []
         fam = ["CONTINUUM", "INTERFACE", "SURFACE", "BEAM", "SHELL"]
@@ -210,9 +200,26 @@ class ElementSet(ItemList):
 
         return familyIDs
 
-
-
-    def commitHistory(self):
+    def commit_history(self):
 
         for element in list(self.values()):
-            element.commitHistory()
+            element.commit_history()
+
+
+if __name__ == "__main__":
+    from pyfem.utils.parser import file_parser
+    os.chdir('F:\\Github\\pyfem\\examples\\gmsh\\rectangle')
+    props = file_parser('rectangle.pro')
+    nset = NodeSet()
+    nset.read_from_file('rectangle.dat')
+    elset = ElementSet(nset, props)
+    elset.read_from_file('rectangle.dat')
+    print(elset.items())
+
+    os.chdir('F:\\Github\\pyfem\\examples\\mesh')
+    props = file_parser('PatchTest8_3D.pro')
+    nset = NodeSet()
+    nset.read_from_file('PatchTest8_3D.dat')
+    elset = ElementSet(nset, props)
+    elset.read_from_file('PatchTest8_3D.dat')
+    print(elset.items())

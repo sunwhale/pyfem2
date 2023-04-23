@@ -2,9 +2,9 @@ import h5py
 import numpy as np
 
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 class HDF5Writer(BaseModule):
@@ -80,10 +80,10 @@ class HDF5Writer(BaseModule):
             elemCount.append(i0)
             connectivity.extend(elem)
 
-        connectivity = np.array(globdat.nodes.get_indices(connectivity), dtype=int)
+        connectivity = np.array(globdat.nodes.get_indices_by_ids(connectivity), dtype=int)
         elemCount = np.array(elemCount, dtype=int)
-        elemIDs = np.array(globdat.elements.get_indices(), dtype=int)
-        familyIDs = np.array(globdat.elements.getFamilyIDs(), dtype=int)
+        elemIDs = np.array(globdat.elements.get_indices_by_ids(), dtype=int)
+        familyIDs = np.array(globdat.elements.get_family_ids(), dtype=int)
 
         cdat["elements"].create_dataset("offsets", elemCount.shape, dtype='i', data=elemCount)
         cdat["elements"].create_dataset("connectivity", connectivity.shape, dtype='i', data=connectivity)
@@ -93,7 +93,7 @@ class HDF5Writer(BaseModule):
         cdat.create_group("elementGroups")
 
         for key in globdat.elements.groups:
-            elementIDs = np.array(globdat.elements.get_indices(globdat.elements.groups[key]), dtype=int)
+            elementIDs = np.array(globdat.elements.get_indices_by_ids(globdat.elements.groups[key]), dtype=int)
             cdat["elementGroups"].create_dataset(key, elementIDs.shape, dtype='i', data=elementIDs)
 
         cdat.create_group("nodes")
@@ -104,7 +104,7 @@ class HDF5Writer(BaseModule):
             coordinates.append(globdat.nodes.get_node_coords(node_id))
 
         coordinates = np.array(coordinates, dtype=float)
-        node_ids = np.array(globdat.nodes.get_indices(), dtype=int)
+        node_ids = np.array(globdat.nodes.get_indices_by_ids(), dtype=int)
 
         cdat["nodes"].create_dataset("coordinates", coordinates.shape, dtype='f', data=coordinates)
         cdat["nodes"].create_dataset("node_ids", node_ids.shape, dtype='i', data=node_ids)
@@ -114,7 +114,7 @@ class HDF5Writer(BaseModule):
         cdat.create_group("nodeGroups")
 
         for key in globdat.nodes.groups:
-            node_ids = np.array(globdat.nodes.get_indices(globdat.nodes.groups[key]), dtype=int)
+            node_ids = np.array(globdat.nodes.get_indices_by_ids(globdat.nodes.groups[key]), dtype=int)
             cdat["nodeGroups"].create_dataset(key, node_ids.shape, dtype='i', data=node_ids)
 
         cdat.create_group("nodeData")
@@ -124,7 +124,7 @@ class HDF5Writer(BaseModule):
         for node_id in list(globdat.nodes.keys()):
             d = []
             for dispDof in dofs:
-                if dispDof in globdat.dofs.dofTypes:
+                if dispDof in globdat.dofs.dof_types:
                     d.append(globdat.state[globdat.dofs.getForType(node_id, dispDof)])
                 else:
                     d.append(0.)
@@ -135,7 +135,7 @@ class HDF5Writer(BaseModule):
         cdat["nodeData"].create_dataset("displacements", displacements.shape, dtype='f', data=displacements)
 
         for field in self.extraFields:
-            if field in globdat.dofs.dofTypes:
+            if field in globdat.dofs.dof_types:
                 output = []
 
                 for node_id in list(globdat.nodes.keys()):

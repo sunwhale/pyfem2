@@ -110,8 +110,8 @@ class MaterialManager(list):
     def getHistory(self, label):
         return self.mat.getHistoryParameter(label)
 
-    def commitHistory(self):
+    def commit_history(self):
 
         if hasattr(self, "matlist"):
             for mat in self.matlist:
-                mat.commitHistory()
+                mat.commit_history()

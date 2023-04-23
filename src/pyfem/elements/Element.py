@@ -6,7 +6,7 @@ from pyfem.materials.MaterialManager import MaterialManager
 
 
 class Element(list):
-    dofTypes = []
+    dof_types = []
 
 
 
@@ -16,14 +16,14 @@ class Element(list):
         self.family = "CONTINUUM"
         self.history = {}
         self.current = {}
-        self.solverStat = props.solverStat
+        self.solver_status = props.solver_status
 
         for name, val in props:
             if name == "material":
                 self.matProps = val
 
                 self.matProps.rank = props.rank
-                self.matProps.solverStat = self.solverStat
+                self.matProps.solver_status = self.solver_status
                 self.mat = MaterialManager(self.matProps)
 
             setattr(self, name, val)
@@ -32,7 +32,7 @@ class Element(list):
 
     def dofCount(self):
 
-        return len(self) * len(self.dofTypes)
+        return len(self) * len(self.dof_types)
 
 
 
@@ -59,11 +59,11 @@ class Element(list):
             outWeights = getattr(self.globdat, name + 'Weights')
 
             if data.ndim == 1:
-                for idx in self.globdat.nodes.get_indices(self):
+                for idx in self.globdat.nodes.get_indices_by_ids(self):
                     outMat[idx] += data[i]
                     outWeights[idx] += weight
             else:
-                for j, idx in enumerate(self.globdat.nodes.get_indices(self)):
+                for j, idx in enumerate(self.globdat.nodes.get_indices_by_ids(self)):
                     outMat[idx] += data[j, i]
                     outWeights[idx] += weight
 
@@ -79,12 +79,12 @@ class Element(list):
 
 
 
-    def commitHistory(self):
+    def commit_history(self):
         self.history = self.current.copy()
         self.current = {}
 
         if hasattr(self, "mat"):
-            self.mat.commitHistory()
+            self.mat.commit_history()
 
     def commit(self, elemdat):
         pass
@@ -95,4 +95,4 @@ class Element(list):
 
     def loadFactor(self):
 
-        return self.solverStat.lam
+        return self.solver_status.lam

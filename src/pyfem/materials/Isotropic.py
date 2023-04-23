@@ -35,7 +35,7 @@ class Isotropic(BaseMaterial):
 
         if self.incremental:
             self.setHistoryParameter('sigma', zeros(6))
-            self.commitHistory()
+            self.commit_history()
 
     # -------------------------------------------------------------------------------
     #

@@ -1,7 +1,7 @@
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 class ContourWriter(BaseModule):
@@ -33,7 +33,7 @@ class ContourWriter(BaseModule):
         if len(crd) == 3:
             outfile.write('%-10s ' % 'z-coor')
 
-        for dof_type in globdat.dofs.dofTypes:
+        for dof_type in globdat.dofs.dof_types:
             outfile.write('%-10s ' % dof_type)
 
         for name in globdat.outputNames:
@@ -48,7 +48,7 @@ class ContourWriter(BaseModule):
             if len(crd) == 3:
                 outfile.write(' %10.3e' % crd[2])
 
-            for dof_type in globdat.dofs.dofTypes:
+            for dof_type in globdat.dofs.dof_types:
                 outfile.write(' %10.3e' % (globdat.state[globdat.dofs.getForType(iNod, dof_type)]))
 
             for name in globdat.outputNames:

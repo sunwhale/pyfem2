@@ -1,9 +1,9 @@
 from numpy import array
 from scipy.sparse import coo_matrix
 
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 class Constrainer:

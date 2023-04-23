@@ -1,8 +1,9 @@
 from numpy import zeros
 
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
+from pyfem.fem.NodeSet import NodeSet
 
-logger = getLogger()
+logger = get_logger()
 
 
 def clean_variable(a):
@@ -65,20 +66,18 @@ class Properties:
 
 
 class GlobalData(Properties):
-
-    def __init__(self, nodes, elements, dofs):
-
+    def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs):
         Properties.__init__(self, {'nodes': nodes, 'elements': elements, 'dofs': dofs})
-
+        print(type(nodes))
         self.state = zeros(len(self.dofs))
-        self.Dstate = zeros(len(self.dofs))
+        self.dstate = zeros(len(self.dofs))
         self.fint = zeros(len(self.dofs))
         self.fhat = zeros(len(self.dofs))
 
         self.velo = zeros(len(self.dofs))
         self.acce = zeros(len(self.dofs))
 
-        self.SolverStatus = elements.solverStat
+        self.SolverStatus = elements.solver_status
 
         self.outputNames = []
 
@@ -123,11 +122,11 @@ class GlobalData(Properties):
 
         print('   Node | ', file=f, end=' ')
 
-        for dof_type in self.dofs.dofTypes:
+        for dof_type in self.dofs.dof_types:
             print("  %-10s" % dof_type, file=f, end=' ')
 
         if hasattr(self, 'fint'):
-            for dof_type in self.dofs.dofTypes:
+            for dof_type in self.dofs.dof_types:
                 print(" fint-%-6s" % dof_type, file=f, end=' ')
 
         for name in self.outputNames:
@@ -138,9 +137,9 @@ class GlobalData(Properties):
 
         for node_id in inodes:
             print('  %4i  | ' % node_id, file=f, end=' ')
-            for dof_type in self.dofs.dofTypes:
+            for dof_type in self.dofs.dof_types:
                 print(' %10.3e ' % self.state[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
-            for dof_type in self.dofs.dofTypes:
+            for dof_type in self.dofs.dof_types:
                 print(' %10.3e ' % self.fint[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
 
             for name in self.outputNames:
@@ -186,7 +185,7 @@ class elementData():
         nDof = len(elstate)
 
         self.state = elstate
-        self.Dstate = elDstate
+        self.dstate = elDstate
         self.stiff = zeros(shape=(nDof, nDof))
         self.fint = zeros(shape=(nDof))
         self.mass = zeros(shape=(nDof, nDof))

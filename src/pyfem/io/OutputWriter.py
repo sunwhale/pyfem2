@@ -1,7 +1,7 @@
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 class OutputWriter(BaseModule):

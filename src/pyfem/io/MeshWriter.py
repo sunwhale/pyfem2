@@ -1,7 +1,7 @@
 from pyfem.utils.BaseModule import BaseModule
-from pyfem.utils.logger import getLogger
+from pyfem.utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 
@@ -53,7 +53,7 @@ class MeshWriter(BaseModule):
             '<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian" compressor="vtkZLibDataCompressor">\n')
         vtkfile.write('<UnstructuredGrid>\n')
         vtkfile.write('<Piece NumberOfPoints="' + str(len(globdat.nodes)) + '" NumberOfCells="')
-        vtkfile.write(str(globdat.elements.elementGroupCount(self.elementGroup)) + '">\n')
+        vtkfile.write(str(globdat.elements.element_group_count(self.elementGroup)) + '">\n')
         vtkfile.write('<PointData>\n')
         vtkfile.write('<DataArray type="Float64" Name="displacement" NumberOfComponents="3" format="ascii" >\n')
 
@@ -61,7 +61,7 @@ class MeshWriter(BaseModule):
 
         for node_id in list(globdat.nodes.keys()):
             for dispDof in dispDofs:
-                if dispDof in globdat.dofs.dofTypes:
+                if dispDof in globdat.dofs.dof_types:
                     vtkfile.write(str(state[globdat.dofs.getForType(node_id, dispDof)]) + ' ')
                 else:
                     vtkfile.write(' 0.\n')
@@ -107,8 +107,8 @@ class MeshWriter(BaseModule):
 
         rank = globdat.nodes.rank
 
-        for element in globdat.elements.iterElementGroup(self.elementGroup):
-            el_nodes = globdat.nodes.get_indices(element.getNodes())
+        for element in globdat.elements.iter_element_group(self.elementGroup):
+            el_nodes = globdat.nodes.get_indices_by_ids(element.getNodes())
 
             if rank == 2:
                 if len(el_nodes) == 2 and element.family == "BEAM":
@@ -137,8 +137,8 @@ class MeshWriter(BaseModule):
 
         nTot = 0
 
-        for i, element in enumerate(globdat.elements.iterElementGroup(self.elementGroup)):
-            num_element_nodes = len(globdat.nodes.get_indices(element.getNodes()))
+        for i, element in enumerate(globdat.elements.iter_element_group(self.elementGroup)):
+            num_element_nodes = len(globdat.nodes.get_indices_by_ids(element.getNodes()))
 
             if rank == 2 and num_element_nodes == 8:
                 num_element_nodes = 4
@@ -151,8 +151,8 @@ class MeshWriter(BaseModule):
         vtkfile.write('</DataArray>\n')
         vtkfile.write('<DataArray type="UInt8" Name="types" format="ascii">\n')
 
-        for element in globdat.elements.iterElementGroup(self.elementGroup):
-            num_element_nodes = len(globdat.nodes.get_indices(element.getNodes()))
+        for element in globdat.elements.iter_element_group(self.elementGroup):
+            num_element_nodes = len(globdat.nodes.get_indices_by_ids(element.getNodes()))
 
             if rank == 2:
                 if num_element_nodes < 4 and self.beam:

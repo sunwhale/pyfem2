@@ -33,5 +33,5 @@ def set_logger(props):
     return logger
 
 
-def getLogger():
+def get_logger():
     return logging.getLogger()

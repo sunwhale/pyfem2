@@ -26,13 +26,13 @@ def assembleArray(props, globdat, rank, action):
         globdat.resetNodalOutput()
 
     # Loop over the element groups
-    for elementGroup in globdat.elements.iterGroupNames():
+    for elementGroup in globdat.elements.iter_group_names():
 
         # Get the properties corresponding to the elementGroup
         el_props = getattr(props, elementGroup)
 
         # Loop over the elements in the elementGroup
-        for iElm, element in enumerate(globdat.elements.iterElementGroup(elementGroup)):
+        for iElm, element in enumerate(globdat.elements.iter_element_group(elementGroup)):
 
             # Get the element nodes
             el_nodes = element.getNodes()
@@ -41,14 +41,14 @@ def assembleArray(props, globdat, rank, action):
             el_coords = globdat.nodes.get_node_coords(el_nodes)
 
             # Get the element degrees of freedom
-            el_dofs = globdat.dofs.getForTypes(el_nodes, element.dofTypes)
+            el_dofs = globdat.dofs.getForTypes(el_nodes, element.dof_types)
 
             # Get the element state
             el_a = globdat.state[el_dofs]
-            el_Da = globdat.Dstate[el_dofs]
+            el_Da = globdat.dstate[el_dofs]
 
             # Create the an element state to pass through to the element
-            # el_state = Properties( { 'state' : el_a, 'Dstate' : el_Da } )
+            # el_state = Properties( { 'state' : el_a, 'dstate' : el_Da } )
             elemdat = elementData(el_a, el_Da)
 
             elemdat.coords = el_coords
@@ -157,13 +157,13 @@ def commit(props, globdat):
 
 def getAllConstraints(props, globdat):
     # Loop over the element groups
-    for elementGroup in globdat.elements.iterGroupNames():
+    for elementGroup in globdat.elements.iter_group_names():
 
         # Get the properties corresponding to the elementGroup
         el_props = getattr(props, elementGroup)
 
         # Loop over the elements in the elementGroup
-        for element in globdat.elements.iterElementGroup(elementGroup):
+        for element in globdat.elements.iter_element_group(elementGroup):
             # Get the element nodes
             el_nodes = element.getNodes()
 
