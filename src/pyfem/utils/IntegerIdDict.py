@@ -61,7 +61,7 @@ class IntegerIdDict(dict):
             except ValueError:
                 raise ValueError(f"ID {ids} not found in {type(self).__name__}")
         elif isinstance(ids, list):
-            return [i for i, id_ in enumerate(indices) if id_ in ids]
+            return [indices.index(id_) for id_ in ids]
         else:
             raise TypeError("Argument to get_indices_by_ids() must be int, list of ints, or None")
 

@@ -4,12 +4,6 @@ from scipy.sparse import coo_matrix
 from pyfem.utils.data_structures import elementData
 
 
-#######################################
-# General array assembly routine for: # 
-# * assembleInternalForce             #
-# * assembleTangentStiffness          #
-#######################################
-
 def assembleArray(props, globdat, rank, action):
     # Initialize the global array A with rank 2
 
@@ -108,18 +102,10 @@ def assembleArray(props, globdat, rank, action):
         return coo_matrix((val, (row, col)), shape=(nDof, nDof)), B
 
 
-##########################################
-# Internal force vector assembly routine # 
-##########################################
-
 def assembleInternalForce(props, globdat):
     fint = assembleArray(props, globdat, rank=1, action='getInternalForce')
     return fint[0]
 
-
-##########################################
-# External force vector assembly routine # 
-##########################################
 
 def assembleExternalForce(props, globdat):
     fext = assembleArray(props, globdat, rank=1, action='getExternalForce')
@@ -131,17 +117,9 @@ def assembleDissipation(props, globdat):
     return assembleArray(props, globdat, rank=1, action='getDissipation')
 
 
-#############################################
-# Tangent stiffness matrix assembly routine # 
-#############################################
-
 def assembleTangentStiffness(props, globdat):
     return assembleArray(props, globdat, rank=2, action='getTangentStiffness')
 
-
-#############################################
-# Mass matrix assembly routine              # 
-#############################################
 
 def assembleMassMatrix(props, globdat):
     return assembleArray(props, globdat, rank=2, action='getMassMatrix')
@@ -150,10 +128,6 @@ def assembleMassMatrix(props, globdat):
 def commit(props, globdat):
     return assembleArray(props, globdat, rank=0, action='commit')
 
-
-#
-#
-#
 
 def getAllConstraints(props, globdat):
     # Loop over the element groups
