@@ -68,7 +68,7 @@ class Properties:
 class GlobalData(Properties):
     def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs):
         Properties.__init__(self, {'nodes': nodes, 'elements': elements, 'dofs': dofs})
-        print(type(nodes))
+
         self.state = zeros(len(self.dofs))
         self.dstate = zeros(len(self.dofs))
         self.fint = zeros(len(self.dofs))

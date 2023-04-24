@@ -8,7 +8,7 @@ rectangle =
   {
     type = "PlaneStrain";
     E    = 1.e5;
-    nu   = 0.25;   
+    nu   = 0.25;
   };
 };
 

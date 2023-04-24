@@ -6,24 +6,15 @@ from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg import spsolve
 
 from pyfem.fem.Constrainer import Constrainer
-from pyfem.utils.parser import read_node_table
 from pyfem.utils.IntegerIdDict import IntegerIdDict
 from pyfem.utils.logger import get_logger
+from pyfem.utils.parser import read_node_table
 
 logger = get_logger()
 
 
 class DofSpace:
-    '''
-    Class dofspace
-    '''
-
     def __init__(self, elements):
-
-        '''
-        Constructor
-        '''
-
         self.dof_types = elements.get_dof_types()
         self.dofs = array(list(range(len(elements.nodes) * len(self.dof_types)))).reshape(
             (len(elements.nodes), len(self.dof_types)))
@@ -36,28 +27,11 @@ class DofSpace:
 
         self.allConstrainedDofs = []
 
-
-
     def __str__(self):
-
-        '''
-        Prints the total overview of degrees of freedom
-        '''
-
         return str(self.dofs)
 
-
-
     def __len__(self):
-
-        '''
-        Function that returns the length of the dofpsace, i.e. the number of
-        degrees of freedeom
-        '''
-
         return len(self.dofs.flatten())
-
-
 
     def setConstrainFactor(self, fac, loadCase="All_"):
 
@@ -67,8 +41,6 @@ class DofSpace:
         else:
             self.cons.constrainedFac[loadCase] = fac
 
-
-
     def read_from_file(self, fname):
 
         logger.info("Reading constraints ..........")
@@ -76,8 +48,6 @@ class DofSpace:
         NodeTable = read_node_table(fname, "NodeConstraints", self.nodes)
 
         self.cons = self.createConstrainer(NodeTable)
-
-
 
     def createConstrainer(self, nodeTables=None):
 
@@ -144,8 +114,6 @@ class DofSpace:
 
         return cons
 
-
-
     def getForType(self, node_ids, dof_type):
 
         '''
@@ -153,8 +121,6 @@ class DofSpace:
         '''
 
         return self.dofs[self.IDmap.get_items_by_ids(node_ids), self.dof_types.index(dof_type)]
-
-
 
     def getForTypes(self, node_ids, dof_types):
 
@@ -170,8 +136,6 @@ class DofSpace:
 
         return dofs
 
-
-
     def getDofName(self, dofID):
 
         '''
@@ -179,8 +143,6 @@ class DofSpace:
         '''
 
         return self.getTypeName(dofID) + '[' + str(self.getNodeID(dofID)) + ']'
-
-
 
     def getNodeID(self, dofID):
 
@@ -190,8 +152,6 @@ class DofSpace:
 
         return self.nodes.get_id_by_index(int(where(self.dofs == dofID)[0]))
 
-
-
     def get_type(self, dofID):
 
         '''
@@ -199,8 +159,6 @@ class DofSpace:
         '''
 
         return int(where(self.dofs == dofID)[1])
-
-
 
     def getTypeName(self, dofID):
 
@@ -210,15 +168,11 @@ class DofSpace:
 
         return self.dof_types[self.get_type(dofID)]
 
-
-
     def get_items_by_ids(self, node_ids):
 
         '''Returns all dofIDs for a list of nodes'''
 
         return self.dofs[self.IDmap.get_items_by_ids(node_ids)].flatten()
-
-
 
     def copyConstrainer(self, dof_types: list = None):
 
@@ -239,10 +193,6 @@ class DofSpace:
         newCons.flush()
 
         return newCons
-
-    # -------------------------------------------------------------------------------
-    #  
-    # -------------------------------------------------------------------------------
 
     def solve(self, A, b, constrainer=None):
 
@@ -275,8 +225,6 @@ class DofSpace:
 
         return x
 
-
-
     def eigensolve(self, A, B, count=5):
 
         '''Calculates the first count eigenvalues and eigenvectors of a
@@ -294,8 +242,6 @@ class DofSpace:
 
         return eigvals, x
 
-
-
     def norm(self, r, constrainer=None):
 
         '''
@@ -306,8 +252,6 @@ class DofSpace:
             constrainer = self.cons
 
         return scipy.linalg.norm(constrainer.C.transpose() * r)
-
-
 
     def maskPrescribed(self, a, val=0.0, constrainer=None):
 

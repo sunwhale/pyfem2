@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Dict, List, Union, TextIO, Iterator
+from typing import List, Union, TextIO, Iterator
 
 import meshio
 
@@ -49,9 +49,7 @@ class ElementSet(IntegerIdDict):
         return list(dof_types)
 
     def read_from_file(self, file_name: str) -> None:
-
         logger.info("Reading elements .............")
-
         with open(file_name, 'r') as f:
             for line in f:
                 line = line.strip().replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', '')
@@ -64,7 +62,7 @@ class ElementSet(IntegerIdDict):
 
     def read_element_connectivity(self, f: TextIO) -> None:
         while True:
-            line = f.readline().strip().replace('\"', '').replace('\'', '')  # Remove leading/trailing white space
+            line = f.readline().strip().replace('\"', '').replace('\'', '')
 
             if line.replace(' ', '').startswith(ELEMENTS_END):
                 # If the line starts with NODES_END, return from the function
@@ -72,59 +70,53 @@ class ElementSet(IntegerIdDict):
 
             items = [x for x in re.split(r';|\s', line) if x]  # Split the line into items
 
-            first_item = items[0] if items else ''
+            first_item = items[0] if items else ''  # If items are empty return '' else return items[0]
             if any(first_item.startswith(comment) for comment in COMMENT_STARTERS):
-                # If the line is a comment, skip it
-                continue
+                continue  # If the line is a comment, skip it
 
             if items and items[0].isdigit():
                 # If the first item is a digit, add the element types and connectivity to the ElementSet object
                 self.add_item_by_element_id(int(items[0]), str(items[1]), [int(node_id) for node_id in items[2:]])
 
     def read_gmsh_file(self, file_name: str) -> None:
-        mesh = meshio.read(file_name, file_format="gmsh")
-
+        mesh = meshio.read(file_name, file_format="gmsh")  # Use package meshio to open the .msh file
         element_id = 0
-
-        for cell_set in mesh.cell_sets_dict:
-            for mesh_type in mesh.cell_sets_dict[cell_set]:
-                for id_ in mesh.cell_sets_dict[cell_set][mesh_type]:
-                    cell_nodes = mesh.cells_dict[mesh_type][id_]
-                    self.add_item_by_element_id(element_id, cell_set, cell_nodes.tolist())
+        for element_group_name in mesh.cell_sets_dict:  # element_group_name is the name of the element group
+            for mesh_type in mesh.cell_sets_dict[element_group_name]:  # The mesh type, such as line, quad ...
+                for id_ in mesh.cell_sets_dict[element_group_name][mesh_type]:  # Element id in the certain mesh type
+                    element_connectivity = mesh.cells_dict[mesh_type][id_]
+                    self.add_item_by_element_id(element_id, element_group_name, element_connectivity.tolist())
                     element_id += 1
 
-    def add_item_by_element_id(self, id_: int, model_name: str, element_nodes: List[int]) -> None:
-        if hasattr(self.props, model_name):
-            model_props = getattr(self.props, model_name, None)
+    def add_item_by_element_id(self, element_id: int, element_group_name: str, element_connectivity: List[int]) -> None:
+        if hasattr(self.props, element_group_name):  # If element_group_name is defined in the .pro file
+            element_group_props = getattr(self.props, element_group_name)  # Get the element properties by the name
 
-            if not model_props:  # Check if the model exists
-                raise RuntimeError(f"Model {model_name} does not exist")
+            element_type = getattr(element_group_props, 'type', None)
+            if not element_type:
+                raise RuntimeError(f"Missing element type for the element group {element_group_name}")
 
-            model_type = getattr(model_props, 'type', None)
-            if not model_type:
-                raise RuntimeError(f"Missing type {model_type} for model {model_name}")
-
-            model_props.rank = self.nodes.rank
-            model_props.solver_status = self.solver_status
+            element_group_props.rank = self.nodes.rank  # Update the object element_group_props
+            element_group_props.solver_status = self.solver_status  # Update the object element_group_props
 
             # Import the element module and create the element
-            element_module = __import__('pyfem.elements.' + model_type, globals(), locals(), model_type, 0)
-            element = getattr(element_module, model_type)
-            elem = element(element_nodes, model_props)  # Create the element
+            element_module = __import__('pyfem.elements.' + element_type, globals(), locals(), element_type, 0)
+            element = getattr(element_module, element_type)
+            elem = element(element_connectivity, element_group_props)  # Create the element
 
             # Check if the node ids are valid
             invalid_node_ids = [node_id for node_id in elem.getNodes() if node_id not in self.nodes]
             if invalid_node_ids:
                 raise RuntimeError(f"Invalid node IDs: {invalid_node_ids}")
 
-            self.add_item_by_id(id_, elem)  # Add the element to the element set
-            self.add_to_group(model_name, id_)  # Add the element to the correct group
+            self.add_item_by_id(element_id, elem)  # Add the element to the element set
+            self.add_to_group(element_group_name, element_id)  # Add the element to the correct group
 
-    def add_to_group(self, model_type: str, id_: int) -> None:
-        if model_type not in self.groups:
-            self.groups[model_type] = [id_]
+    def add_to_group(self, element_group_name: str, id_: int) -> None:
+        if element_group_name not in self.groups:
+            self.groups[element_group_name] = [id_]
         else:
-            self.groups[model_type].append(id_)
+            self.groups[element_group_name].append(id_)
 
     def add_group(self, group_name: str, group_ids: List[int]) -> None:
         self.groups[group_name] = group_ids
@@ -153,14 +145,11 @@ class ElementSet(IntegerIdDict):
             return len(self.groups[group_name])
 
     def get_family_ids(self) -> List[int]:
-
         families = ['CONTINUUM', 'INTERFACE', 'SURFACE', 'BEAM', 'SHELL']
         family_ids = [families.index(elem.family) for elem in self]
-
         return family_ids
 
     def commit_history(self) -> None:
-
         for element in list(self.values()):
             element.commit_history()
 
@@ -174,16 +163,16 @@ if __name__ == "__main__":
     nset.read_from_file('rectangle.dat')
     elset = ElementSet(nset, props)
     elset.read_from_file('rectangle.dat')
-    print(elset.groups)
-
-    os.chdir('F:\\Github\\pyfem\\examples\\mesh')
-    props = file_parser('PatchTest8_3D.pro')
-    nset = NodeSet()
-    nset.read_from_file('PatchTest8_3D.dat')
-    elset = ElementSet(nset, props)
-    elset.read_from_file('PatchTest8_3D.dat')
     print(elset)
 
-    for e in elset.iter_element_group(['ContElem','ContElem2']):
-        print(type(e))
+    # os.chdir('F:\\Github\\pyfem\\examples\\mesh')
+    # props = file_parser('PatchTest8_3D.pro')
+    # nset = NodeSet()
+    # nset.read_from_file('PatchTest8_3D.dat')
+    # elset = ElementSet(nset, props)
+    # elset.read_from_file('PatchTest8_3D.dat')
+    # print(elset)
+
+    # for e in elset.iter_element_group(['ContElem','ContElem2']):
+    #     print(type(e))
     # print(IntegerIdDict.add_item_by_id)

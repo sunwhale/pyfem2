@@ -33,7 +33,7 @@ def assembleArray(props, globdat, rank, action):
 
         # Loop over the elements in the elementGroup
         for iElm, element in enumerate(globdat.elements.iter_element_group(elementGroup)):
-
+            print(iElm)
             # Get the element nodes
             el_nodes = element.getNodes()
 
