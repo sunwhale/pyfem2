@@ -83,12 +83,12 @@ class HDF5Writer(BaseModule):
         connectivity = np.array(globdat.nodes.get_indices_by_ids(connectivity), dtype=int)
         elemCount = np.array(elemCount, dtype=int)
         elemIDs = np.array(globdat.elements.get_indices_by_ids(), dtype=int)
-        familyIDs = np.array(globdat.elements.get_family_ids(), dtype=int)
+        family_ids = np.array(globdat.elements.get_family_ids(), dtype=int)
 
         cdat["elements"].create_dataset("offsets", elemCount.shape, dtype='i', data=elemCount)
         cdat["elements"].create_dataset("connectivity", connectivity.shape, dtype='i', data=connectivity)
         cdat["elements"].create_dataset("elementIDs", elemIDs.shape, dtype='i', data=elemIDs)
-        cdat["elements"].create_dataset("familyIDs", familyIDs.shape, dtype='i', data=familyIDs)
+        cdat["elements"].create_dataset("family_ids", family_ids.shape, dtype='i', data=family_ids)
 
         cdat.create_group("elementGroups")
 
