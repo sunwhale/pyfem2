@@ -25,6 +25,7 @@ class ElementSet(IntegerIdDict):
         self.props = props
         self.solver_status = SolverStatus()
         self.groups = {}
+        self.families = ['CONTINUUM', 'INTERFACE', 'SURFACE', 'BEAM', 'SHELL']
 
     def __iter__(self) -> iter:
         for group_name in self.iter_group_names():
@@ -110,16 +111,16 @@ class ElementSet(IntegerIdDict):
                 raise RuntimeError(f"Invalid node IDs: {invalid_node_ids}")
 
             self.add_item_by_id(element_id, elem)  # Add the element to the element set
-            self.add_to_group(element_group_name, element_id)  # Add the element to the correct group
+            self.add_to_group_by_id(element_group_name, element_id)  # Add the element to the correct group
 
-    def add_to_group(self, element_group_name: str, id_: int) -> None:
-        if element_group_name not in self.groups:
-            self.groups[element_group_name] = [id_]
+    def add_to_group_by_id(self, group_name: str, id_: int) -> None:
+        if group_name not in self.groups:
+            self.groups[group_name] = [id_]
         else:
-            self.groups[element_group_name].append(id_)
+            self.groups[group_name].append(id_)
 
-    def add_group(self, group_name: str, group_ids: List[int]) -> None:
-        self.groups[group_name] = group_ids
+    def add_to_group_by_ids(self, group_name: str, ids: List[int]) -> None:
+        self.groups[group_name] = ids
 
     def iter_group_names(self) -> Iterator[str]:
         return iter(self.groups)
@@ -130,49 +131,72 @@ class ElementSet(IntegerIdDict):
         elif isinstance(group_name, list):
             elems = [item for name in group_name for item in self.get_items_by_ids(self.groups[name])]
             return iter(elems)
-        else:
+        elif isinstance(group_name, str):
             return iter(self.get_items_by_ids(self.groups[group_name]))
+        else:
+            raise TypeError("Argument to iter_element_group() must be str, or list of strs")
 
-    def element_group_count(self, group_name: str) -> int:
-        if group_name == "All":
+    def elements_count_in_group(self, group_name: Union[str, List[str]]) -> int:
+        """
+        Get the number of elements in a certain group or a list of groups.
+        :param group_name:
+        :return:
+        """
+        if group_name == 'All':
             return len(self)
         elif isinstance(group_name, list):
             length = 0
             for name in group_name:
                 length += len(self.groups[name])
             return length
-        else:
+        elif isinstance(group_name, str):
             return len(self.groups[group_name])
+        else:
+            raise TypeError("Argument to elements_count_in_group() must be str, or list of strs")
 
     def get_family_ids(self) -> List[int]:
-        families = ['CONTINUUM', 'INTERFACE', 'SURFACE', 'BEAM', 'SHELL']
-        family_ids = [families.index(elem.family) for elem in self]
-        return family_ids
+        """
+        Get all elements' indices in the list self.families.
+        :return:
+        """
+        return [self.families.index(element.family) for element in self]
 
-    def commit_history(self) -> None:
+    def update_commit_history(self) -> None:
+        """
+        Call the commit_history() function of all elements in the object.
+        :return:
+        """
         for element in list(self.values()):
             element.commit_history()
 
 
 if __name__ == "__main__":
     from pyfem.utils.parser import file_parser
+    import time
 
-    os.chdir('F:\\Github\\pyfem\\examples\\gmsh\\rectangle')
-    props = file_parser('rectangle.pro')
-    nset = NodeSet()
-    nset.read_from_file('rectangle.dat')
-    elset = ElementSet(nset, props)
-    elset.read_from_file('rectangle.dat')
-    print(elset)
+    t1 = time.time()
 
-    # os.chdir('F:\\Github\\pyfem\\examples\\mesh')
-    # props = file_parser('PatchTest8_3D.pro')
+    # os.chdir('F:\\Github\\pyfem\\examples\\gmsh\\rectangle')
+    # props = file_parser('rectangle.pro')
     # nset = NodeSet()
-    # nset.read_from_file('PatchTest8_3D.dat')
+    # nset.read_from_file('rectangle.dat')
     # elset = ElementSet(nset, props)
-    # elset.read_from_file('PatchTest8_3D.dat')
-    # print(elset)
+    # elset.read_from_file('rectangle.dat')
+    # print(elset.elements_count_in_group('All'))
+
+    os.chdir('F:\\Github\\pyfem\\examples\\mesh')
+    props = file_parser('PatchTest8_3D.pro')
+    nset = NodeSet()
+    nset.read_from_file('PatchTest8_3D.dat')
+    elset = ElementSet(nset, props)
+    elset.read_from_file('PatchTest8_3D.dat')
+    print(elset)
 
     # for e in elset.iter_element_group(['ContElem','ContElem2']):
     #     print(type(e))
     # print(IntegerIdDict.add_item_by_id)
+
+    t2 = time.time()
+
+    total = t2 - t1
+    print("Time elapsed = ", total, " [s].\n")

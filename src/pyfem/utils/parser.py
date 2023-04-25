@@ -259,10 +259,10 @@ def read_node_table(file_name, label, nodes=None):
                                                 if '-' in ieq_rhs:
                                                     factor = -1.0;
                                                 ieq_rhs = ieq_rhs.replace("-", "").replace("+", "")
-                                                slaveDofType, slaveNodeID = decode_node_dof(ieq_rhs, nodes)
+                                                slave_dof_type, slave_node_id = decode_node_dof(ieq_rhs, nodes)
 
                                     for node_id in node_ids:
-                                        dt = [dof_type, int(node_id), rhs, slaveDofType, slaveNodeID, factor]
+                                        dt = [dof_type, int(node_id), rhs, slave_dof_type, slave_node_id, factor]
                                         nt.data.append(dt)
 
     return output

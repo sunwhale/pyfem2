@@ -6,8 +6,7 @@ from pyfem.utils.logger import get_logger
 logger = get_logger()
 
 
-class Constrainer:
-    '''Constrainer class'''
+class Constrain:
 
     def __init__(self, nDofs, name="Main"):
 
@@ -15,45 +14,41 @@ class Constrainer:
         self.constrainData = {}
         self.name = name
 
-        self.constrainedDofs = {}
-        self.constrainedVals = {}
-        self.constrainedFac = {}
+        self.constrained_dofs = {}
+        self.constrained_values = {}
+        self.constrained_factors = {}
 
+    def add_constraint(self, dof_id, val, label):
 
-
-    def addConstraint(self, dofID, val, label):
-
-        if dofID in self.constrainData:
-            self.constrainData[dofID].append(val)
+        if dof_id in self.constrainData:
+            self.constrainData[dof_id].append(val)
         else:
-            self.constrainData[dofID] = [val]
+            self.constrainData[dof_id] = [val]
 
         if (type(val) is list) and (len(val) == 3):
             addVal = val[0]
         else:
             addVal = val
 
-        if dofID in self.constrainedDofs[label]:
-            self.setFactorForDof(addVal, dofID, label)
+        if dof_id in self.constrained_dofs[label]:
+            self.setFactorForDof(addVal, dof_id, label)
             return
 
-        self.constrainedDofs[label].append(dofID)
+        self.constrained_dofs[label].append(dof_id)
 
-        self.constrainedVals[label].append(addVal)
+        self.constrained_values[label].append(addVal)
 
         logger.debug("TEST")
 
-
-
-    def checkConstraints(self, dofspace, nodeTables):
+    def check_constraints(self, dofspace, node_tables):
 
         '''Checks tying relations between dofs'''
         for item in self.constrainData:
 
             dofInd = item
 
-            for ilabel in self.constrainedDofs:
-                if dofInd in self.constrainedDofs[ilabel]:
+            for ilabel in self.constrained_dofs:
+                if dofInd in self.constrained_dofs[ilabel]:
                     label = ilabel
 
             removeItem = []
@@ -85,17 +80,12 @@ class Constrainer:
                         for iVal, iFac in reversed(list(zip(tempVal, tempFac))):
                             masterFin += iVal + master * iFac
 
-                        self.addConstraint(dofInd, valSlave + masterFin * facSlave, label)
+                        self.add_constraint(dofInd, valSlave + masterFin * facSlave, label)
 
                         removeItem.append(tiedItem)
 
             for iRemove in removeItem:
                 self.constrainData[item].remove(iRemove)
-
-            # -------------------------------------------------------------------------------
-
-    #
-    # -------------------------------------------------------------------------------
 
     def flush(self):
 
@@ -140,50 +130,38 @@ class Constrainer:
 
         self.C = coo_matrix((val, (row, col)), shape=(self.nDofs, iCon))
 
-
-
     def addConstrainedValues(self, a):
 
-        for name in self.constrainedDofs.keys():
-            a[self.constrainedDofs[name]] += self.constrainedFac[name] * array(self.constrainedVals[name])
-
-
+        for name in self.constrained_dofs.keys():
+            a[self.constrained_dofs[name]] += self.constrained_factors[name] * array(self.constrained_values[name])
 
     def setConstrainedValues(self, a):
 
-        for name in self.constrainedDofs.keys():
-            a[self.constrainedDofs[name]] = self.constrainedFac[name] * array(self.constrainedVals[name])
+        for name in self.constrained_dofs.keys():
+            a[self.constrained_dofs[name]] = self.constrained_factors[name] * array(self.constrained_values[name])
 
+    def set_constrain_factor(self, fac, load_case="All_"):
 
-
-    def setConstrainFactor(self, fac, loadCase="All_"):
-
-        if loadCase == "All_":
-            for name in self.constrainedFac.keys():
-                self.constrainedFac[name] = fac
+        if load_case == "All_":
+            for name in self.constrained_factors.keys():
+                self.constrained_factors[name] = fac
         else:
-            self.constrainedFac[loadCase] = fac
-
-
+            self.constrained_factors[load_case] = fac
 
     def setPrescribedDofs(self, a, val=0.0):
 
-        for name in self.constrainedDofs.keys():
-            a[self.constrainedDofs[name]] = array(val)
+        for name in self.constrained_dofs.keys():
+            a[self.constrained_dofs[name]] = array(val)
 
+    def setFactorForDof(self, fac, dof_id, label):
 
-
-    def setFactorForDof(self, fac, dofID, label):
-
-        idx = self.constrainedDofs[label].index(dofID)
-        self.constrainedVals[label][idx] += fac
-
-
+        idx = self.constrained_dofs[label].index(dof_id)
+        self.constrained_values[label][idx] += fac
 
     def slaveCount(self):
 
         counter = 0
-        for name in self.constrainedFac.keys():
-            counter += len(self.constrainedDofs[name])
+        for name in self.constrained_factors.keys():
+            counter += len(self.constrained_dofs[name])
 
         return counter

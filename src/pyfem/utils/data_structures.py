@@ -69,23 +69,25 @@ class GlobalData(Properties):
     def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs):
         Properties.__init__(self, {'nodes': nodes, 'elements': elements, 'dofs': dofs})
 
-        self.state = zeros(len(self.dofs))
-        self.dstate = zeros(len(self.dofs))
-        self.fint = zeros(len(self.dofs))
-        self.fhat = zeros(len(self.dofs))
+        number_of_dofs = dofs.get_number_of_dofs()
 
-        self.velo = zeros(len(self.dofs))
-        self.acce = zeros(len(self.dofs))
+        self.state = zeros(number_of_dofs)
+        self.dstate = zeros(number_of_dofs)
+        self.fint = zeros(number_of_dofs)
+        self.fhat = zeros(number_of_dofs)
+
+        self.velo = zeros(number_of_dofs)
+        self.acce = zeros(number_of_dofs)
 
         self.SolverStatus = elements.solver_status
 
         self.outputNames = []
 
-    def read_from_file(self, fname):
+    def read_from_file(self, file_name):
 
         logger.info("Reading external forces ......")
 
-        fin = open(fname)
+        fin = open(file_name)
 
         while True:
             line = fin.readline()
@@ -108,7 +110,7 @@ class GlobalData(Properties):
                             dof_type = c[0]
                             node_id = eval(c[1].split(']')[0])
 
-                            self.fhat[self.dofs.getForType(node_id, dof_type)] = eval(b[1])
+                            self.fhat[self.dofs.get_dof_ids_by_type(node_id, dof_type)] = eval(b[1])
 
     def printNodes(self, file_name=None, inodes=None):
 
@@ -138,9 +140,9 @@ class GlobalData(Properties):
         for node_id in inodes:
             print('  %4i  | ' % node_id, file=f, end=' ')
             for dof_type in self.dofs.dof_types:
-                print(' %10.3e ' % self.state[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
+                print(' %10.3e ' % self.state[self.dofs.get_dof_ids_by_type(node_id, dof_type)], file=f, end=' ')
             for dof_type in self.dofs.dof_types:
-                print(' %10.3e ' % self.fint[self.dofs.getForType(node_id, dof_type)], file=f, end=' ')
+                print(' %10.3e ' % self.fint[self.dofs.get_dof_ids_by_type(node_id, dof_type)], file=f, end=' ')
 
             for name in self.outputNames:
                 print(' %10.3e ' % self.getData(name, node_id), file=f, end=' ')

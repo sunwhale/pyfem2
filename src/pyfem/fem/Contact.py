@@ -71,7 +71,7 @@ class Contact:
         for node_id in list(globdat.nodes.keys()):
             crd = globdat.nodes.get_node_coords(node_id)
 
-            idofs = globdat.dofs.getForTypes([node_id], self.dispDofs)
+            idofs = globdat.dofs.get_dof_ids_by_types([node_id], self.dispDofs)
 
             crd += globdat.state[idofs]
 

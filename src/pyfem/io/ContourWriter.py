@@ -49,7 +49,7 @@ class ContourWriter(BaseModule):
                 outfile.write(' %10.3e' % crd[2])
 
             for dof_type in globdat.dofs.dof_types:
-                outfile.write(' %10.3e' % (globdat.state[globdat.dofs.getForType(iNod, dof_type)]))
+                outfile.write(' %10.3e' % (globdat.state[globdat.dofs.get_dof_ids_by_type(iNod, dof_type)]))
 
             for name in globdat.outputNames:
                 stress = globdat.getData(name, list(range(len(globdat.nodes))))

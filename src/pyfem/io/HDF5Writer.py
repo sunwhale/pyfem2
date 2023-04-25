@@ -125,7 +125,7 @@ class HDF5Writer(BaseModule):
             d = []
             for dispDof in dofs:
                 if dispDof in globdat.dofs.dof_types:
-                    d.append(globdat.state[globdat.dofs.getForType(node_id, dispDof)])
+                    d.append(globdat.state[globdat.dofs.get_dof_ids_by_type(node_id, dispDof)])
                 else:
                     d.append(0.)
             displacements.append(d)
@@ -139,7 +139,7 @@ class HDF5Writer(BaseModule):
                 output = []
 
                 for node_id in list(globdat.nodes.keys()):
-                    output.append(globdat.state[globdat.dofs.getForType(node_id, field)])
+                    output.append(globdat.state[globdat.dofs.get_dof_ids_by_type(node_id, field)])
 
                 output = np.array(output, dtype=float)
 

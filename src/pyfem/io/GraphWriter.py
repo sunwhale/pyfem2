@@ -77,9 +77,9 @@ class GraphWriter(BaseModule):
                     if type(col.node) is list:
                         data = 0.0
                         for nod in col.node:
-                            data += b[globdat.dofs.getForType(int(nod), col.dof)]
+                            data += b[globdat.dofs.get_dof_ids_by_type(int(nod), col.dof)]
                     else:
-                        data = b[globdat.dofs.getForType(col.node, col.dof)]
+                        data = b[globdat.dofs.get_dof_ids_by_type(col.node, col.dof)]
                 else:
                     data = b
             elif col.type in globdat.outputNames:

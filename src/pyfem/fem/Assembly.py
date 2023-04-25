@@ -7,14 +7,14 @@ from pyfem.utils.data_structures import elementData
 def assembleArray(props, globdat, rank, action):
     # Initialize the global array A with rank 2
 
-    B = zeros(len(globdat.dofs) * ones(1, dtype=int))
+    B = zeros(globdat.dofs.get_number_of_dofs() * ones(1, dtype=int))
     cc = 0.0
 
     val = array([], dtype=float)
     row = array([], dtype=int)
     col = array([], dtype=int)
 
-    nDof = len(globdat.dofs)
+    nDof = globdat.dofs.get_number_of_dofs()
 
     if action != 'commit':
         globdat.resetNodalOutput()
@@ -27,7 +27,7 @@ def assembleArray(props, globdat, rank, action):
 
         # Loop over the elements in the elementGroup
         for iElm, element in enumerate(globdat.elements.iter_element_group(elementGroup)):
-            print(iElm)
+
             # Get the element nodes
             el_nodes = element.getNodes()
 
@@ -35,7 +35,7 @@ def assembleArray(props, globdat, rank, action):
             el_coords = globdat.nodes.get_node_coords(el_nodes)
 
             # Get the element degrees of freedom
-            el_dofs = globdat.dofs.getForTypes(el_nodes, element.dof_types)
+            el_dofs = globdat.dofs.get_dof_ids_by_types(el_nodes, element.dof_types)
 
             # Get the element state
             el_a = globdat.state[el_dofs]

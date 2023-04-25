@@ -7,18 +7,14 @@ from pyfem.utils.logger import get_logger
 logger = get_logger()
 
 
-
-
 class LinearSolver(BaseModule):
 
     def __init__(self, props, globdat):
         BaseModule.__init__(self, props)
 
-        self.fext = zeros(len(globdat.dofs))
+        self.fext = zeros(globdat.dofs.number_of_dofs)
 
         logger.info("Starting linear solver .......")
-
-
 
     def run(self, props, globdat):
         globdat.SolverStatus.increaseStep()
@@ -36,6 +32,6 @@ class LinearSolver(BaseModule):
 
         commit(props, globdat)
 
-        globdat.elements.commit_history()
+        globdat.elements.update_commit_history()
 
         globdat.active = False

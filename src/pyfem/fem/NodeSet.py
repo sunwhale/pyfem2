@@ -116,9 +116,9 @@ class NodeSet(IntegerIdDict):
                     for id_ in mesh.cell_sets_dict[cell_set][mesh_type]:
                         cell_nodes = mesh.cells_dict[mesh_type][id_]
                         for node_id in cell_nodes:
-                            self.add_to_group(cell_set, node_id)  # Add each node to the appropriate group
+                            self.add_to_group_by_id(cell_set, node_id)  # Add each node to the appropriate group
 
-    def add_to_group(self, cell_set: str, node_id: int) -> None:
+    def add_to_group_by_id(self, cell_set: str, node_id: int) -> None:
         """
         Add a node to a group.
 
@@ -182,7 +182,7 @@ class NodeSet(IntegerIdDict):
             items = line.split()
             for item in items:
                 if isinstance(item, int):  # If the item is an integer, add it to the node group
-                    self.add_to_group(key, item)
+                    self.add_to_group_by_id(key, item)
 
 
 if __name__ == "__main__":

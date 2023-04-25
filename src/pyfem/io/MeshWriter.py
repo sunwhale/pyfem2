@@ -53,7 +53,7 @@ class MeshWriter(BaseModule):
             '<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian" compressor="vtkZLibDataCompressor">\n')
         vtkfile.write('<UnstructuredGrid>\n')
         vtkfile.write('<Piece NumberOfPoints="' + str(len(globdat.nodes)) + '" NumberOfCells="')
-        vtkfile.write(str(globdat.elements.element_group_count(self.elementGroup)) + '">\n')
+        vtkfile.write(str(globdat.elements.elements_count_in_group(self.elementGroup)) + '">\n')
         vtkfile.write('<PointData>\n')
         vtkfile.write('<DataArray type="Float64" Name="displacement" NumberOfComponents="3" format="ascii" >\n')
 
@@ -62,7 +62,7 @@ class MeshWriter(BaseModule):
         for node_id in list(globdat.nodes.keys()):
             for dispDof in dispDofs:
                 if dispDof in globdat.dofs.dof_types:
-                    vtkfile.write(str(state[globdat.dofs.getForType(node_id, dispDof)]) + ' ')
+                    vtkfile.write(str(state[globdat.dofs.get_dof_ids_by_type(node_id, dispDof)]) + ' ')
                 else:
                     vtkfile.write(' 0.\n')
 
@@ -72,7 +72,7 @@ class MeshWriter(BaseModule):
             vtkfile.write('<DataArray type="Float64" Name="' + field + '" NumberOfComponents="1" format="ascii" >\n')
 
             for node_id in list(globdat.nodes.keys()):
-                vtkfile.write(str(state[globdat.dofs.getForType(node_id, field)]) + ' ')
+                vtkfile.write(str(state[globdat.dofs.get_dof_ids_by_type(node_id, field)]) + ' ')
 
             vtkfile.write('</DataArray>\n')
 
