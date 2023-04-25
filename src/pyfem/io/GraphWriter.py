@@ -84,8 +84,8 @@ class GraphWriter(BaseModule):
                     data = b
             elif col.type in globdat.outputNames:
                 data = globdat.getData(col.type, col.node)
-            elif hasattr(globdat.SolverStatus, col.type):
-                data = getattr(globdat.SolverStatus, col.type)
+            elif hasattr(globdat.solver_status, col.type):
+                data = getattr(globdat.solver_status, col.type)
 
             data = data * col.factor
 

@@ -25,7 +25,7 @@ class MeshWriter(BaseModule):
 
     def run(self, props, globdat):
 
-        if not globdat.SolverStatus.cycle % self.interval == 0:
+        if not globdat.solver_status.cycle % self.interval == 0:
             return
 
         logger.info("Writing mesh .................")

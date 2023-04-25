@@ -23,7 +23,7 @@ class DataDump(BaseModule):
 
     def run(self, props, globdat):
 
-        cycle = globdat.SolverStatus.cycle
+        cycle = globdat.solver_status.cycle
 
         if cycle % self.interval == 0:
             data = {}

@@ -110,7 +110,7 @@ def assembleInternalForce(props, globdat):
 def assembleExternalForce(props, globdat):
     fext = assembleArray(props, globdat, rank=1, action='getExternalForce')
 
-    return fext[0] + globdat.fhat * globdat.SolverStatus.lam
+    return fext[0] + globdat.fhat * globdat.solver_status.lam
 
 
 def assembleDissipation(props, globdat):

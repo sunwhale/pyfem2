@@ -12,8 +12,8 @@ logger = get_logger()
 
 NODES_START = "<Nodes>"
 NODES_END = "</Nodes>"
-GROUP_START = "<NodeGroups"
-GROUP_END = "</NodeGroups>"
+GROUP_START = "<NodeGroup"
+GROUP_END = "</NodeGroup>"
 GMSH_START = "gmsh"
 COMMENT_STARTERS = ["//", "#"]
 
@@ -181,8 +181,8 @@ class NodeSet(IntegerIdDict):
                 return
             items = line.split()
             for item in items:
-                if isinstance(item, int):  # If the item is an integer, add it to the node group
-                    self.add_to_group_by_id(key, item)
+                if item.isdigit():  # If the item can be translated to an integer, add it to the node group
+                    self.add_to_group_by_id(key, int(item))
 
 
 if __name__ == "__main__":

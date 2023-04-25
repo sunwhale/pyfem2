@@ -1,8 +1,11 @@
-from typing import List, Union
+from copy import deepcopy
+from typing import List, Union, Tuple
 
 import numpy as np
-from numpy import array, zeros, where
+import scipy.linalg
+from numpy import array, dot, zeros, where
 from scipy.sparse import coo_matrix
+from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg import spsolve
 
 from pyfem.fem.Constraint import Constraint
@@ -141,29 +144,29 @@ class DofSpace:
     def get_dof_type_name(self, dof_id: int) -> str:
         return self.dof_types[self.get_dof_type_id(dof_id)]
 
-    # def get_items_by_node_ids(self, node_ids: Union[int, List[int]]) -> List[int]:
-    #     """
-    #     The function is not used.
-    #     """
-    #     return self.dofs[self.id_map.get_items_by_ids(node_ids)].flatten()
+    def get_items_by_node_ids(self, node_ids: Union[int, List[int]]) -> List[int]:
+        """
+        The function is not used.
+        """
+        return self.dofs[self.id_map.get_items_by_ids(node_ids)].flatten()
 
-    # def copy_constrain(self, dof_types: list = None) -> Constraint:
-    #     """
-    #     The function is not used.
-    #     """
-    #     new_constrain = deepcopy(self.constraint)
-    #
-    #     if type(dof_types) is str:
-    #         dof_types = [dof_types]
-    #
-    #     for dof_type in dof_types:
-    #         for dof_id in self.dofs[:, self.dof_types.index(dof_type)]:
-    #             for label in new_constrain.constrained_factors.keys():
-    #                 new_constrain.add_constraint(dof_id, 0.0, label)
-    #
-    #     new_constrain.flush()
-    #
-    #     return new_constrain
+    def copy_constrain(self, dof_types: list = None) -> Constraint:
+        """
+        The function is not used.
+        """
+        new_constrain = deepcopy(self.constraint)
+
+        if type(dof_types) is str:
+            dof_types = [dof_types]
+
+        for dof_type in dof_types:
+            for dof_id in self.dofs[:, self.dof_types.index(dof_type)]:
+                for label in new_constrain.constrained_factors.keys():
+                    new_constrain.add_constraint(dof_id, 0.0, label)
+
+        new_constrain.flush()
+
+        return new_constrain
 
     def solve(self, A: coo_matrix, rhs: np.ndarray, constraint: Constraint = None) -> np.ndarray:
         """
@@ -206,52 +209,52 @@ class DofSpace:
 
         return x
 
-    # def eigen_solve(self, A: coo_matrix, B: coo_matrix, count: int = 5) -> Tuple[np.ndarray]:
-    #     """
-    #     Calculates the first count eigenvalues and eigenvectors of a system with ( A lambda B ) x
-    #     :param A:
-    #     :param B:
-    #     :param count:
-    #     :return:
-    #     """
-    #
-    #     A_constrained = dot(dot(self.constraint.C.transpose(), A), self.constraint.C)
-    #     B_constrained = dot(dot(self.constraint.C.transpose(), B), self.constraint.C)
-    #
-    #     eigen_values, eigen_vectors = eigsh(A_constrained, count, B_constrained, sigma=0., which='LM')
-    #
-    #     x = zeros(shape=(self.number_of_dofs, count))
-    #
-    #     for i, psi in enumerate(eigen_vectors.transpose()):
-    #         x[:, i] = self.constraint.C * psi
-    #
-    #     return eigen_values, x
+    def eigen_solve(self, A: coo_matrix, B: coo_matrix, count: int = 5) -> Tuple[np.ndarray]:
+        """
+        Calculates the first count eigenvalues and eigenvectors of a system with ( A lambda B ) x
+        :param A:
+        :param B:
+        :param count:
+        :return:
+        """
 
-    # def norm(self, r: np.ndarray, constraint: Constraint = None) -> np.ndarray:
-    #     """
-    #     Calculates the norm of vector r excluding the constrained dofs
-    #     :param r:
-    #     :param constraint:
-    #     :return:
-    #     """
-    #     if constraint is None:
-    #         constraint = self.constraint
-    #     return scipy.linalg.norm(constraint.C.transpose() * r)
+        A_constrained = dot(dot(self.constraint.C.transpose(), A), self.constraint.C)
+        B_constrained = dot(dot(self.constraint.C.transpose(), B), self.constraint.C)
 
-    # def mask_prescribed(self, a, val: float = 0.0, constraint: Constraint = None):
-    #     """
-    #     Replaced the prescribed dofs by val
-    #     :param a:
-    #     :param val:
-    #     :param constraint:
-    #     :return:
-    #     """
-    #     if constraint is None:
-    #         constraint = self.constraint
-    #
-    #     a[constraint.constrained_dofs['None']] = val
-    #
-    #     return a
+        eigen_values, eigen_vectors = eigsh(A_constrained, count, B_constrained, sigma=0., which='LM')
+
+        x = zeros(shape=(self.number_of_dofs, count))
+
+        for i, psi in enumerate(eigen_vectors.transpose()):
+            x[:, i] = self.constraint.C * psi
+
+        return eigen_values, x
+
+    def norm(self, r: np.ndarray, constraint: Constraint = None) -> np.ndarray:
+        """
+        Calculates the norm of vector r excluding the constrained dofs
+        :param r:
+        :param constraint:
+        :return:
+        """
+        if constraint is None:
+            constraint = self.constraint
+        return scipy.linalg.norm(constraint.C.transpose() * r)
+
+    def mask_prescribed(self, a, val: float = 0.0, constraint: Constraint = None):
+        """
+        Replaced the prescribed dofs by val
+        :param a:
+        :param val:
+        :param constraint:
+        :return:
+        """
+        if constraint is None:
+            constraint = self.constraint
+
+        a[constraint.constrained_dofs['None']] = val
+
+        return a
 
 
 if __name__ == "__main__":

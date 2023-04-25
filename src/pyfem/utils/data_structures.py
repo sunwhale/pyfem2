@@ -79,7 +79,7 @@ class GlobalData(Properties):
         self.velo = zeros(number_of_dofs)
         self.acce = zeros(number_of_dofs)
 
-        self.SolverStatus = elements.solver_status
+        self.solver_status = elements.solver_status
 
         self.outputNames = []
 
