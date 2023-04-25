@@ -6,7 +6,7 @@ from pyfem.utils.logger import get_logger
 logger = get_logger()
 
 
-class Constrain:
+class Constraint:
 
     def __init__(self, nDofs, name="Main"):
 
@@ -98,9 +98,9 @@ class Constrain:
 
         iCon = 0
 
-        for iDof in range(self.nDofs):
-            if iDof in self.constrainData:
-                for item in self.constrainData[iDof]:
+        for dof_id in range(self.nDofs):
+            if dof_id in self.constrainData:
+                for item in self.constrainData[dof_id]:
                     if type(item) is not list:
                         continue
                     else:
@@ -108,10 +108,10 @@ class Constrain:
                             # Something not checked correct in checkConstraint2
                             raise RuntimeError('ERROR - Master of slave is a slave itself')
                         else:
-                            master[iDof] = item
+                            master[dof_id] = item
 
             else:
-                row.append(iDof)
+                row.append(dof_id)
                 col.append(iCon)
                 val.append(1.)
 
@@ -130,12 +130,12 @@ class Constrain:
 
         self.C = coo_matrix((val, (row, col)), shape=(self.nDofs, iCon))
 
-    def addConstrainedValues(self, a):
+    def add_constrained_values(self, a):
 
         for name in self.constrained_dofs.keys():
             a[self.constrained_dofs[name]] += self.constrained_factors[name] * array(self.constrained_values[name])
 
-    def setConstrainedValues(self, a):
+    def set_constrained_values(self, a):
 
         for name in self.constrained_dofs.keys():
             a[self.constrained_dofs[name]] = self.constrained_factors[name] * array(self.constrained_values[name])

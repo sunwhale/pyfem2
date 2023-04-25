@@ -46,8 +46,12 @@ class ElementSet(IntegerIdDict):
         return str_
 
     def get_dof_types(self) -> List[str]:
-        dof_types = {dof_type for element in self for dof_type in element.dof_types}
-        return list(dof_types)
+        dof_types = []
+        for element in self:
+            for dof_type in element.dof_types:
+                if dof_type not in dof_types:
+                    dof_types.append(dof_type)
+        return dof_types
 
     def read_from_file(self, file_name: str) -> None:
         logger.info("Reading elements .............")

@@ -1,11 +1,11 @@
-from copy import deepcopy
-from typing import List, Union, TextIO, Iterator
-import scipy.linalg
-from numpy import array, dot, zeros, where
-from scipy.sparse.linalg import eigsh
+from typing import List, Union
+
+import numpy as np
+from numpy import array, zeros, where
+from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import spsolve
 
-from pyfem.fem.Constrain import Constrain
+from pyfem.fem.Constraint import Constraint
 from pyfem.fem.ElementSet import ElementSet
 from pyfem.utils.IntegerIdDict import IntegerIdDict
 from pyfem.utils.logger import get_logger
@@ -16,7 +16,7 @@ logger = get_logger()
 
 class DofSpace:
     def __init__(self, elements: ElementSet) -> None:
-        self.constrain = None
+        self.constraint = None
         self.dof_types = elements.get_dof_types()
         self.dofs = array(list(range(len(elements.nodes) * len(self.dof_types)))).reshape(
             (len(elements.nodes), len(self.dof_types)))
@@ -35,31 +35,30 @@ class DofSpace:
 
     def set_constrain_factor(self, factor, load_case='All_'):
         if load_case == 'All_':
-            for name in self.constrain.constrained_factors.keys():
-                self.constrain.constrained_factors[name] = factor
+            for name in self.constraint.constrained_factors.keys():
+                self.constraint.constrained_factors[name] = factor
         else:
-            self.constrain.constrained_factors[load_case] = factor
+            self.constraint.constrained_factors[load_case] = factor
 
     def read_from_file(self, file_name: str) -> None:
         logger.info("Reading constraints ..........")
         node_table = read_node_table(file_name, "NodeConstraints", self.nodes)
-        self.constrain = self.create_constrain(node_table)
+        self.constraint = self.create_constrain(node_table)
 
-    def create_constrain(self, node_tables: Union[List[NodeTable], None] = None) -> Constrain:
-        constrain = Constrain(self.get_number_of_dofs())
+    def create_constrain(self, node_tables: Union[List[NodeTable], None] = None) -> Constraint:
+        constraint = Constraint(self.get_number_of_dofs())
         if node_tables is None:
             label = "main"
-            constrain.constrained_dofs[label] = []
-            constrain.constrained_values[label] = []
-            constrain.constrained_factors[label] = 1.0
-            return constrain
+            constraint.constrained_dofs[label] = []
+            constraint.constrained_values[label] = []
+            constraint.constrained_factors[label] = 1.0
+            return constraint
 
         for node_table in node_tables:
             label = node_table.sub_label
-
-            constrain.constrained_dofs[label] = []
-            constrain.constrained_values[label] = []
-            constrain.constrained_factors[label] = 1.0
+            constraint.constrained_dofs[label] = []
+            constraint.constrained_values[label] = []
+            constraint.constrained_factors[label] = 1.0
 
             for item in node_table.data:
                 dof_type = item[0]
@@ -76,7 +75,7 @@ class DofSpace:
 
                 if len(item) == 3:
                     dof_id = self.dofs[index, self.dof_types.index(dof_type)]
-                    constrain.add_constraint(dof_id, val, label)
+                    constraint.add_constraint(dof_id, val, label)
 
                 else:
                     slave_node_id = item[4]
@@ -95,17 +94,17 @@ class DofSpace:
 
                     dof_id = self.dofs[index, self.dof_types.index(dof_type)]
 
-                    constrain.add_constraint(dof_id, [val, slave_dof, factor], label)
+                    constraint.add_constraint(dof_id, [val, slave_dof, factor], label)
 
-        constrain.check_constraints(self, node_tables)
+        constraint.check_constraints(self, node_tables)
 
-        constrain.flush()
+        constraint.flush()
 
-        return constrain
+        return constraint
 
     def get_dof_ids_by_type(self, node_ids: Union[int, List[int]], dof_type: str) -> Union[int, List[int]]:
         """
-        Get dof_id (or list of dof_ids) for a given dof_type and node (or list of nodes)
+        Get dof_id (or list of dof_ids) for a given dof_type and node (or list of nodes).
         :param node_ids:
         :param dof_type:
         :return:
@@ -114,7 +113,7 @@ class DofSpace:
 
     def get_dof_ids_by_types(self, node_ids: List[int], dof_types: List[str]) -> List[int]:
         """
-        Get list of dof_ids for given list of dof_types and list of nodes
+        Get list of dof_ids for given list of dof_types and list of nodes.
         :param node_ids:
         :param dof_types:
         :return:
@@ -127,131 +126,132 @@ class DofSpace:
 
     def get_dof_name_by_id(self, dof_id: int) -> str:
         """
-        Returns the dof_id as a string. For example 'u[14]'
+        get the dof name as a string. For example 'u[0]'.
+        :param dof_id:
+        :return:
         """
-        return self.getTypeName(dof_id) + '[' + str(self.getNodeID(dof_id)) + ']'
+        return self.get_dof_type_name(dof_id) + '[' + str(self.get_node_id_by_dof_id(dof_id)) + ']'
 
-    def getNodeID(self, dof_id):
-
-        '''
-        Returns the node ID of dof_id
-        '''
-
+    def get_node_id_by_dof_id(self, dof_id: int) -> int:
         return self.nodes.get_id_by_index(int(where(self.dofs == dof_id)[0]))
 
-    def get_type(self, dof_id):
-
-        '''
-        Returns the type of dof_id
-        '''
-
+    def get_dof_type_id(self, dof_id: int) -> int:
         return int(where(self.dofs == dof_id)[1])
 
-    def getTypeName(self, dof_id):
+    def get_dof_type_name(self, dof_id: int) -> str:
+        return self.dof_types[self.get_dof_type_id(dof_id)]
 
-        '''
-        Returns the name of the dof_type
-        '''
+    # def get_items_by_node_ids(self, node_ids: Union[int, List[int]]) -> List[int]:
+    #     """
+    #     The function is not used.
+    #     """
+    #     return self.dofs[self.id_map.get_items_by_ids(node_ids)].flatten()
 
-        return self.dof_types[self.get_type(dof_id)]
+    # def copy_constrain(self, dof_types: list = None) -> Constraint:
+    #     """
+    #     The function is not used.
+    #     """
+    #     new_constrain = deepcopy(self.constraint)
+    #
+    #     if type(dof_types) is str:
+    #         dof_types = [dof_types]
+    #
+    #     for dof_type in dof_types:
+    #         for dof_id in self.dofs[:, self.dof_types.index(dof_type)]:
+    #             for label in new_constrain.constrained_factors.keys():
+    #                 new_constrain.add_constraint(dof_id, 0.0, label)
+    #
+    #     new_constrain.flush()
+    #
+    #     return new_constrain
 
-    def get_items_by_ids(self, node_ids):
+    def solve(self, A: coo_matrix, rhs: np.ndarray, constraint: Constraint = None) -> np.ndarray:
+        """
+        Solves the system Ax = rhs using the internal constraint matrix.
+        Returns the total solution vector x.
 
-        '''Returns all dof_ids for a list of nodes'''
+        :param A:
+        :param rhs:
+        :param constraint:
+        :return x:
+        """
 
-        return self.dofs[self.id_map.get_items_by_ids(node_ids)].flatten()
-
-    def copyConstrain(self, dof_types: list = None):
-
-        '''
-        
-        '''
-
-        newCons = deepcopy(self.constrain)
-
-        if type(dof_types) is str:
-            dof_types = [dof_types]
-
-        for dof_type in dof_types:
-            for iDof in self.dofs[:, self.dof_types.index(dof_type)]:
-                for label in newCons.constrained_factors.keys():
-                    newCons.add_constraint(iDof, 0.0, label)
-
-        newCons.flush()
-
-        return newCons
-
-    def solve(self, A, b, constrainer=None):
-
-        '''Solves the system Ax = b using the internal constraints matrix.
-           Returns the total solution vector x.'''
-
-        if constrainer is None:
-            constrainer = self.constrain
+        if constraint is None:
+            constraint = self.constraint
 
         if len(A.shape) == 2:
 
             a = zeros(self.number_of_dofs)
 
-            constrainer.addConstrainedValues(a)
+            constraint.add_constrained_values(a)
 
-            A_constrained = constrainer.C.transpose() * (A * constrainer.C)
+            A_constrained = constraint.C.transpose() * (A * constraint.C)
 
-            b_constrained = constrainer.C.transpose() * (b - A * a)
+            rhs_constrained = constraint.C.transpose() * (rhs - A * a)
 
-            x_constrained = spsolve(A_constrained, b_constrained)
+            x_constrained = spsolve(A_constrained, rhs_constrained)
 
-            x = constrainer.C * x_constrained
+            x = constraint.C * x_constrained
 
-            constrainer.addConstrainedValues(x)
+            constraint.add_constrained_values(x)
 
         elif len(A.shape) == 1:
-            x = b / A
 
-            constrainer.setConstrainedValues(x)
+            x = rhs / A
+
+            constraint.set_constrained_values(x)
+
+        else:
+            raise ValueError
 
         return x
 
-    def eigensolve(self, A, B, count=5):
+    # def eigen_solve(self, A: coo_matrix, B: coo_matrix, count: int = 5) -> Tuple[np.ndarray]:
+    #     """
+    #     Calculates the first count eigenvalues and eigenvectors of a system with ( A lambda B ) x
+    #     :param A:
+    #     :param B:
+    #     :param count:
+    #     :return:
+    #     """
+    #
+    #     A_constrained = dot(dot(self.constraint.C.transpose(), A), self.constraint.C)
+    #     B_constrained = dot(dot(self.constraint.C.transpose(), B), self.constraint.C)
+    #
+    #     eigen_values, eigen_vectors = eigsh(A_constrained, count, B_constrained, sigma=0., which='LM')
+    #
+    #     x = zeros(shape=(self.number_of_dofs, count))
+    #
+    #     for i, psi in enumerate(eigen_vectors.transpose()):
+    #         x[:, i] = self.constraint.C * psi
+    #
+    #     return eigen_values, x
 
-        '''Calculates the first count eigenvalues and eigenvectors of a
-           system with ( A lambda B ) x '''
+    # def norm(self, r: np.ndarray, constraint: Constraint = None) -> np.ndarray:
+    #     """
+    #     Calculates the norm of vector r excluding the constrained dofs
+    #     :param r:
+    #     :param constraint:
+    #     :return:
+    #     """
+    #     if constraint is None:
+    #         constraint = self.constraint
+    #     return scipy.linalg.norm(constraint.C.transpose() * r)
 
-        A_constrained = dot(dot(self.constrain.C.transpose(), A), self.constrain.C)
-        B_constrained = dot(dot(self.constrain.C.transpose(), B), self.constrain.C)
-
-        eigvals, eigvecs = eigsh(A_constrained, count, B_constrained, sigma=0., which='LM')
-
-        x = zeros(shape=(len(self), count))
-
-        for i, psi in enumerate(eigvecs.transpose()):
-            x[:, i] = self.constrain.C * psi
-
-        return eigvals, x
-
-    def norm(self, r, constrainer=None):
-
-        '''
-        Calculates the norm of vector r excluding the constrained dofs
-        '''
-
-        if constrainer is None:
-            constrainer = self.constrain
-
-        return scipy.linalg.norm(constrainer.C.transpose() * r)
-
-    def maskPrescribed(self, a, val=0.0, constrainer=None):
-
-        '''
-        Replaced the prescribed dofs by val
-        '''
-
-        if constrainer is None:
-            constrainer = self.constrain
-
-        a[constrainer.constrained_dofs["None"]] = val
-
-        return a
+    # def mask_prescribed(self, a, val: float = 0.0, constraint: Constraint = None):
+    #     """
+    #     Replaced the prescribed dofs by val
+    #     :param a:
+    #     :param val:
+    #     :param constraint:
+    #     :return:
+    #     """
+    #     if constraint is None:
+    #         constraint = self.constraint
+    #
+    #     a[constraint.constrained_dofs['None']] = val
+    #
+    #     return a
 
 
 if __name__ == "__main__":
@@ -287,8 +287,8 @@ if __name__ == "__main__":
 
     total = t2 - t1
     print("Time elapsed = ", total, " [s].\n")
-    print(dofs.get_dof_name_by_id(0))
-    print(dofs.constrain.constrained_dofs)
-    print(dofs.constrain.constrained_values)
-    print(dofs.constrain.constrained_factors)
-    print(dofs.get_dof_ids_by_types([0], ['u', 'v']))
+    print(type(dofs.constraint.constrained_dofs['None']))
+    # print(dofs.constraint.constrained_dofs)
+    # print(dofs.constraint.constrained_values)
+    # print(dofs.constraint.constrained_factors)
+    # print(dofs.get_dof_ids_by_types([0], ['u', 'v']))
