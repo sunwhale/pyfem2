@@ -77,7 +77,7 @@ class MeshWriter(BaseModule):
             vtkfile.write('</DataArray>\n')
 
         for name in globdat.outputNames:
-            stress = globdat.getData(name, list(range(len(globdat.nodes))))
+            stress = globdat.get_data(name, list(range(len(globdat.nodes))))
 
             vtkfile.write('<DataArray type="Float64" Name="' + name + '" NumberOfComponents="1" format="ascii" >\n')
             for i in range(len(globdat.nodes)):

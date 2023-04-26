@@ -60,6 +60,8 @@ def input_reader():
 
     globdat.contact = Contact(props)
 
+    globdat.print_nodes(node_ids=[0])
+
     return props, globdat
 
 

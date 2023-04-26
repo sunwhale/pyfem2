@@ -1,7 +1,9 @@
+from typing import Dict, List
+
 from numpy import zeros
 
-from pyfem.utils.logger import get_logger
 from pyfem.fem.NodeSet import NodeSet
+from pyfem.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -35,7 +37,7 @@ class SolverStatus:
 
 
 class Properties:
-    def __init__(self, dictionary: dict = None):
+    def __init__(self, dictionary: Dict = None):
         self.__dict__.update(dictionary or {})
 
     def __str__(self):
@@ -66,21 +68,18 @@ class Properties:
 
 
 class GlobalData(Properties):
-    def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs):
-        Properties.__init__(self, {'nodes': nodes, 'elements': elements, 'dofs': dofs})
+    def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs: "DofSpace"):
+        super().__init__({'nodes': nodes, 'elements': elements, 'dofs': dofs})
 
-        number_of_dofs = dofs.get_number_of_dofs()
+        number_of_dofs = dofs.number_of_dofs
 
         self.state = zeros(number_of_dofs)
         self.dstate = zeros(number_of_dofs)
         self.fint = zeros(number_of_dofs)
         self.fhat = zeros(number_of_dofs)
-
         self.velo = zeros(number_of_dofs)
         self.acce = zeros(number_of_dofs)
-
         self.solver_status = elements.solver_status
-
         self.outputNames = []
 
     def read_from_file(self, file_name):
@@ -112,15 +111,17 @@ class GlobalData(Properties):
 
                             self.fhat[self.dofs.get_dof_ids_by_type(node_id, dof_type)] = eval(b[1])
 
-    def printNodes(self, file_name=None, inodes=None):
+    def print_nodes(self, file_name: str = None, node_ids: List[int] = None) -> None:
 
         if file_name is None:
             f = None
         else:
             f = open(file_name, "w")
 
-        if inodes is None:
-            inodes = list(self.nodes.keys())
+        if node_ids is None:
+            node_ids = list(self.nodes.keys())
+
+        print(node_ids)
 
         print('   Node | ', file=f, end=' ')
 
@@ -137,7 +138,7 @@ class GlobalData(Properties):
         print(" ", file=f)
         print(('-' * 100), file=f)
 
-        for node_id in inodes:
+        for node_id in node_ids:
             print('  %4i  | ' % node_id, file=f, end=' ')
             for dof_type in self.dofs.dof_types:
                 print(' %10.3e ' % self.state[self.dofs.get_dof_ids_by_type(node_id, dof_type)], file=f, end=' ')
@@ -145,7 +146,7 @@ class GlobalData(Properties):
                 print(' %10.3e ' % self.fint[self.dofs.get_dof_ids_by_type(node_id, dof_type)], file=f, end=' ')
 
             for name in self.outputNames:
-                print(' %10.3e ' % self.getData(name, node_id), file=f, end=' ')
+                print(' %10.3e ' % self.get_data(name, node_id), file=f, end=' ')
 
             print(" ", file=f)
         print(" ", file=f)
@@ -153,18 +154,18 @@ class GlobalData(Properties):
         if file_name is not None:
             f.close()
 
-    def getData(self, outputName, inodes):
+    def get_data(self, output_name, node_ids):
 
-        data = getattr(self, outputName)
-        weights = getattr(self, outputName + 'Weights')
+        data = getattr(self, output_name)
+        weights = getattr(self, output_name + 'Weights')
 
-        if type(inodes) is int:
-            i = list(self.nodes.keys()).index(inodes)
+        if type(node_ids) is int:
+            i = list(self.nodes.keys()).index(node_ids)
             return data[i] / weights[i]
         else:
             outdata = []
 
-            for row, w in zip(data[inodes], weights[inodes]):
+            for row, w in zip(data[node_ids], weights[node_ids]):
                 if w != 0:
                     outdata.append(row / w)
                 else:
@@ -174,9 +175,9 @@ class GlobalData(Properties):
 
     def resetNodalOutput(self):
 
-        for outputName in self.outputNames:
-            delattr(self, outputName)
-            delattr(self, outputName + 'Weights')
+        for output_name in self.outputNames:
+            delattr(self, output_name)
+            delattr(self, output_name + 'Weights')
 
         self.outputNames = []
 

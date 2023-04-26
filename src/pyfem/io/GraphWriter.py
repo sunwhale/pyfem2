@@ -69,7 +69,7 @@ class GraphWriter(BaseModule):
         for i, col in enumerate(self.columndata):
 
             if col.type in globdat.outputNames:
-                data = globdat.getData(col.type, col.node)
+                data = globdat.get_data(col.type, col.node)
 
             elif hasattr(globdat, col.type):
                 b = getattr(globdat, col.type)
@@ -83,7 +83,7 @@ class GraphWriter(BaseModule):
                 else:
                     data = b
             elif col.type in globdat.outputNames:
-                data = globdat.getData(col.type, col.node)
+                data = globdat.get_data(col.type, col.node)
             elif hasattr(globdat.solver_status, col.type):
                 data = getattr(globdat.solver_status, col.type)
 

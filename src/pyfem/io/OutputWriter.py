@@ -24,6 +24,6 @@ class OutputWriter(BaseModule):
         logger.info("Writing output file ..........")
 
         if self.onScreen:
-            globdat.printNodes()
+            globdat.print_nodes()
 
-        globdat.printNodes(self.filename)
+        globdat.print_nodes(self.filename)

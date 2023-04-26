@@ -146,7 +146,7 @@ class HDF5Writer(BaseModule):
                 cdat["nodeData"].create_dataset(field, output.shape, dtype='f', data=output)
 
         for name in globdat.outputNames:
-            output = globdat.getData(name, list(range(len(globdat.nodes))))
+            output = globdat.get_data(name, list(range(len(globdat.nodes))))
 
             output = np.array(output, dtype=float)
 
