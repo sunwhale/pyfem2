@@ -12,6 +12,14 @@ pyfem.utils.BaseModule module
    :undoc-members:
    :show-inheritance:
 
+pyfem.utils.IntegerIdDict module
+--------------------------------
+
+.. automodule:: pyfem.utils.IntegerIdDict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.utils.bezier\_shape\_functions module
 -------------------------------------------
 
@@ -24,14 +32,6 @@ pyfem.utils.data\_structures module
 -----------------------------------
 
 .. automodule:: pyfem.utils.data_structures
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pyfem.utils.item\_list module
------------------------------
-
-.. automodule:: pyfem.utils.item_list
    :members:
    :undoc-members:
    :show-inheritance:

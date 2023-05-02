@@ -44,6 +44,18 @@ ContElem =
   };
 };
 
+ContElem2 =
+{
+  type = "SmallStrainContinuum";
+
+  material =
+  {
+    type = "Isotropic";
+    E    = 1.e6;
+    nu   = 0.25;
+  };
+};
+
 solver =
 {
   type = "LinearSolver";

@@ -6,29 +6,25 @@ rectangle =
 
   material =
   {
-    type   = "IsotropicKinematicHardening";
-    E      = 1.e6;
-    nu     = 0.25;
-    syield = 10000.;
-    hard   = 1.e4;
+    type = "PlaneStrain";
+    E    = 1.e5;
+    nu   = 0.25;   
   };
 };
 
 solver =
 {
-  type = "NonlinearSolver";
-
-  maxCycle = 20;
+  type     = "LinearSolver";
 };
 
-outputModules = ["vtk"];
+outputModules = ["vtk", "graph"];
 
 vtk =
 {
   type = "MeshWriter";
 };
 
-GraphWriter =
+graph =
 {
   type = "GraphWriter";
   onScreen = true;
@@ -38,7 +34,7 @@ GraphWriter =
   disp =
   {
     type = "state";
-    node = "right";
+    node = "left";
     dof  = "u";
   };
 

@@ -68,7 +68,11 @@ class Properties:
 
 
 class GlobalData(Properties):
+
     def __init__(self, nodes: NodeSet, elements: "ElementSet", dofs: "DofSpace"):
+        self.nodes = None
+        self.elements = None
+        self.dofs = None
         super().__init__({'nodes': nodes, 'elements': elements, 'dofs': dofs})
 
         number_of_dofs = dofs.number_of_dofs
@@ -121,8 +125,6 @@ class GlobalData(Properties):
         if node_ids is None:
             node_ids = list(self.nodes.keys())
 
-        print(node_ids)
-
         print('   Node | ', file=f, end=' ')
 
         for dof_type in self.dofs.dof_types:
@@ -173,7 +175,7 @@ class GlobalData(Properties):
 
             return outdata
 
-    def resetNodalOutput(self):
+    def reset_nodal_output(self):
 
         for output_name in self.outputNames:
             delattr(self, output_name)
@@ -182,7 +184,7 @@ class GlobalData(Properties):
         self.outputNames = []
 
 
-class elementData():
+class ElementData:
 
     def __init__(self, elstate, elDstate):
         nDof = len(elstate)

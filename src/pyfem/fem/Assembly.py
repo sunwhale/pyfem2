@@ -1,7 +1,7 @@
 from numpy import zeros, ones, append, repeat, array
 from scipy.sparse import coo_matrix
 
-from pyfem.utils.data_structures import elementData
+from pyfem.utils.data_structures import ElementData
 
 
 def assembleArray(props, globdat, rank, action):
@@ -17,7 +17,7 @@ def assembleArray(props, globdat, rank, action):
     nDof = globdat.dofs.get_number_of_dofs()
 
     if action != 'commit':
-        globdat.resetNodalOutput()
+        globdat.reset_nodal_output()
 
     # Loop over the element groups
     for elementGroup in globdat.elements.iter_group_names():
@@ -43,7 +43,7 @@ def assembleArray(props, globdat, rank, action):
 
             # Create the an element state to pass through to the element
             # el_state = Properties( { 'state' : el_a, 'dstate' : el_Da } )
-            elemdat = elementData(el_a, el_Da)
+            elemdat = ElementData(el_a, el_Da)
 
             elemdat.coords = el_coords
             elemdat.nodes = el_nodes

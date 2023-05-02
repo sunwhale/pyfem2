@@ -12,6 +12,14 @@ pyfem.materials.BaseMaterial module
    :undoc-members:
    :show-inheritance:
 
+pyfem.materials.Isotropic module
+--------------------------------
+
+.. automodule:: pyfem.materials.Isotropic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pyfem.materials.MaterialManager module
 --------------------------------------
 
